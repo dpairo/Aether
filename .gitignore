@@ -50,3 +50,15 @@ nbproject/private/
 **/jacoco/
 **/surefire-reports/
 **/coverage/
+
+# --- Sensitive data ---
+.env
+.env.local
+.env.*.local
+*.db
+*.h2.db
+
+# --- Logs ---
+logs/
+*.log
+spring.log

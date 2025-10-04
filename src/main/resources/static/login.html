@@ -1,13 +1,249 @@
 <!doctype html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Document</title>
+    <title>Aether - Login with Strava</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .login-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            max-width: 450px;
+            width: 100%;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .login-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .login-header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .login-header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .login-body {
+            padding: 40px 30px;
+        }
+
+        .info-message {
+            background: #f0f4f8;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: center;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .strava-btn {
+            width: 100%;
+            background: #fc4c02;
+            color: white;
+            border: none;
+            padding: 18px 30px;
+            font-size: 18px;
+            font-weight: 600;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(252, 76, 2, 0.3);
+        }
+
+        .strava-btn:hover {
+            background: #e34402;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(252, 76, 2, 0.4);
+        }
+
+        .strava-btn:active {
+            transform: translateY(0);
+        }
+
+        .strava-btn i {
+            font-size: 24px;
+        }
+
+        .error-message {
+            background: #fee;
+            color: #c33;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            border: 1px solid #fcc;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+            animation: shake 0.5s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .features {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 1px solid #eee;
+        }
+
+        .features h3 {
+            font-size: 16px;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .features ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .features li {
+            padding: 10px 0;
+            color: #666;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .features li i {
+            color: #667eea;
+            font-size: 16px;
+        }
+
+        .footer-link {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .footer-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .footer-link a:hover {
+            text-decoration: underline;
+        }
+    </style>
 </head>
 <body>
+    <div class="login-container">
+        <div class="login-header">
+            <h1><i class="fa-solid fa-wind"></i> AETHER</h1>
+            <p>Breathe Better, Run Smarter</p>
+        </div>
+        
+        <div class="login-body">
+            <div id="error-message" class="error-message"></div>
+            
+            <div class="info-message">
+                <p>Connect your Strava account to access personalized air quality data for your running routes.</p>
+            </div>
+            
+            <button class="strava-btn" onclick="loginWithStrava()">
+                <i class="fa-brands fa-strava"></i>
+                Connect with Strava
+            </button>
+            
+            <div class="features">
+                <h3>What you'll get:</h3>
+                <ul>
+                    <li><i class="fa-solid fa-check-circle"></i> Real-time air quality data</li>
+                    <li><i class="fa-solid fa-check-circle"></i> Pollution-aware route planning</li>
+                    <li><i class="fa-solid fa-check-circle"></i> Activity tracking integration</li>
+                    <li><i class="fa-solid fa-check-circle"></i> Personalized health insights</li>
+                </ul>
+            </div>
 
+            <div class="footer-link">
+                <a href="/index.html">← Back to Map</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Check for error parameters in URL
+        window.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const error = urlParams.get('error');
+            
+            if (error) {
+                const errorMsg = document.getElementById('error-message');
+                let message = 'An error occurred during authentication.';
+                
+                switch(error) {
+                    case 'access_denied':
+                        message = 'You denied access to Strava. Please try again.';
+                        break;
+                    case 'missing_code':
+                        message = 'Authorization code is missing. Please try again.';
+                        break;
+                    case 'auth_failed':
+                        message = 'Authentication failed. Please try again later.';
+                        break;
+                }
+                
+                errorMsg.textContent = message;
+                errorMsg.classList.add('show');
+            }
+        });
+
+        function loginWithStrava() {
+            // Redirect to backend OAuth endpoint
+            window.location.href = '/api/v1/strava/auth/login';
+        }
+    </script>
 </body>
 </html>

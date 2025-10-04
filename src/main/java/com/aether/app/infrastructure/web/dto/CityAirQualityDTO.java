@@ -9,18 +9,21 @@ public record CityAirQualityDTO(
         Double longitude,
         Integer aqi,
         String aqiStatus,
+        String aqiColor,
         String dominantPollutant,
         AirQualityDataDTO airQuality,
         String timestamp
 ) {
     public static CityAirQualityDTO fromWAQIResponse(String city, String cityId, Double lat, Double lon, WAQIResponseDTO response) {
+        Integer aqi = response.data().aqi();
         return new CityAirQualityDTO(
                 city,
                 cityId,
                 lat,
                 lon,
-                response.data().aqi(),
-                getAQIStatus(response.data().aqi()),
+                aqi,
+                getAQIStatus(aqi),
+                AQIColorUtil.getAQIColor(aqi),
                 response.data().dominentpol(),
                 new AirQualityDataDTO(
                         response.data().iaqi().pm25() != null ? response.data().iaqi().pm25().v() : null,

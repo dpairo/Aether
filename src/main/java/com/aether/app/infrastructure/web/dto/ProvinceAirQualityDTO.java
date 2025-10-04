@@ -7,6 +7,7 @@ public record ProvinceAirQualityDTO(
         Double longitude,
         Integer aqi,
         String aqiStatus,
+        String aqiColor,
         String dominantPollutant,
         AirQualityDataDTO airQuality,
         String timestamp
@@ -20,6 +21,7 @@ public record ProvinceAirQualityDTO(
                 lon,
                 cityData.aqi(),
                 cityData.aqiStatus(),
+                cityData.aqiColor(),
                 cityData.dominantPollutant(),
                 cityData.airQuality(),
                 cityData.timestamp()
