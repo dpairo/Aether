@@ -18,3 +18,4 @@ public record StravaAthleteDTO(
         @JsonProperty("profile_medium") String profileMedium
 ) {}
 
+

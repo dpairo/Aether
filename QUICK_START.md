@@ -201,3 +201,4 @@ Ver [IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md) para ideas.
 
 **¿Problemas?** Revisa [STRAVA_INTEGRATION.md](STRAVA_INTEGRATION.md) → Sección Troubleshooting
 
+

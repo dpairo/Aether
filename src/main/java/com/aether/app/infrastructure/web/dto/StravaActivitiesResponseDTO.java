@@ -15,3 +15,4 @@ public record StravaActivitiesResponseDTO(
         String message
 ) {}
 
+

@@ -69,3 +69,4 @@ echo "   - Authorization Callback Domain incluya: localhost"
 echo "   - La aplicación esté en modo desarrollo"
 echo ""
 
+

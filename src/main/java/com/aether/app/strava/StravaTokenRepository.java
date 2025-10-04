@@ -22,3 +22,4 @@ public interface StravaTokenRepository extends JpaRepository<StravaToken, Long> 
     boolean existsByAthleteId(Long athleteId);
 }
 
+
