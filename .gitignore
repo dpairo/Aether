@@ -1,10 +1,29 @@
-### IntelliJ IDEA ###
-out/
-!**/src/main/**/out/
-!src/test/**/out/
-.kotlin
+# --- OS ---
+.DS_Store
+Thumbs.db
 
-### Eclipse ###
+# --- Java/Build outputs ---
+*.class
+*.log
+*.ctxt
+hs_err_pid*
+replay_pid*
+
+# --- Gradle ---
+.gradle/
+**/.gradle/
+build/
+**/build/
+!gradle/wrapper/gradle-wrapper.jar
+!gradle/wrapper/gradle-wrapper.properties
+
+# --- IntelliJ IDEA ---
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# --- Eclipse/NetBeans (por si acaso) ---
 .apt_generated
 .classpath
 .factorypath
@@ -13,18 +32,29 @@ out/
 .springBeans
 .sts4-cache
 bin/
-!**/src/main/**/bin/
-!src/test/**/bin/
+.nb-gradle/
+nbbuild/
+dist/
+nbdist/
+nbproject/private/
 
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
-
-### VS Code ###
+# --- VS Code ---
 .vscode/
 
-### Mac OS ###
-.DS_Store
+# --- Reports/coverage ---
+**/reports/
+**/test-results/
+**/jacoco/
+**/surefire-reports/
+**/coverage/
+
+# --- Spring Boot (config locales/no sensibles) ---
+application-local.properties
+application-local.yml
+application-*.local.properties
+application-*.local.yml
+.env
+.env.*
+!.env.example
+
+# --- Otros ---
