@@ -2,16 +2,20 @@
 
 **Breathe Better, Run Smarter**
 
-Aether es una plataforma web que visualiza datos de calidad del aire en tiempo real, diseñada especialmente para runners y atletas que desean optimizar sus entrenamientos según las condiciones ambientales.
+Plataforma web que visualiza datos de calidad del aire en tiempo real, diseñada especialmente para runners y atletas que desean optimizar sus entrenamientos según las condiciones ambientales.
+
+---
 
 ## ✨ Características
 
-- 🗺️ **Visualización de calidad del aire** en tiempo real sobre mapa interactivo
-- 🏃 **Integración con Strava** para datos personalizados de actividades
-- 📍 **Geolocalización** para obtener datos del aire en tu ubicación
-- 🌈 **Código de colores AQI** (Air Quality Index) estándar
-- 🚦 **Detección de contaminantes** dominantes por zona
-- 📊 **Información detallada** por provincias y ciudades de España
+- 🗺️ Visualización de calidad del aire en tiempo real sobre mapa interactivo
+- 🏃 Integración con Strava para rutas personalizadas
+- 📍 Geolocalización para datos del aire en tu ubicación
+- 🌈 Código de colores AQI (Air Quality Index) estándar EPA
+- 🔄 Rutas más repetidas con contador de frecuencia
+- 📊 Información detallada de ciudades españolas
+
+---
 
 ## 🚀 Inicio Rápido
 
@@ -19,77 +23,103 @@ Aether es una plataforma web que visualiza datos de calidad del aire en tiempo r
 
 - Java 17 o superior
 - Gradle 7.x o superior
-- Cuenta de Strava (para autenticación)
+- Cuenta de Strava (opcional)
 
-### Instalación
+### Instalación Básica
 
-1. **Clonar el repositorio**
-   ```bash
-   git clone https://github.com/tuusuario/Aether.git
-   cd Aether
-   ```
+```bash
+# 1. Clonar
+git clone https://github.com/tuusuario/Aether.git
+cd Aether
 
-2. **Configurar Strava OAuth**
-   
-   Ejecuta el script de configuración:
-   ```bash
-   ./setup-strava.sh
-   ```
-   
-   O configura manualmente las variables de entorno:
-   ```bash
-   export STRAVA_CLIENT_ID="tu_client_id"
-   export STRAVA_CLIENT_SECRET="tu_client_secret"
-   export STRAVA_REDIRECT_URI="http://localhost:8080/api/v1/strava/auth/callback"
-   ```
-   
-   Para obtener tus credenciales de Strava:
-   - Ve a [https://www.strava.com/settings/api](https://www.strava.com/settings/api)
-   - Crea una nueva aplicación
-   - Copia el Client ID y Client Secret
+# 2. Compilar
+./gradlew build
 
-3. **Ejecutar la aplicación**
-   ```bash
-   source .env  # Solo si usaste el script de configuración
-   ./gradlew bootRun
-   ```
+# 3. Ejecutar
+./gradlew bootRun
 
-4. **Abrir en el navegador**
-   ```
-   http://localhost:8080
-   ```
+# 4. Abrir
+http://localhost:8080
+```
+
+### Setup con Strava (Opcional)
+
+Para ver tus rutas más repetidas:
+
+```bash
+# 1. Crear app en Strava: https://www.strava.com/settings/api
+# 2. Configurar credenciales
+export STRAVA_CLIENT_ID="tu_client_id"
+export STRAVA_CLIENT_SECRET="tu_client_secret"
+
+# 3. Reiniciar
+./gradlew bootRun
+```
+
+Ver [docs/STRAVA_SETUP.md](docs/STRAVA_SETUP.md) para guía completa.
+
+---
 
 ## 📖 Documentación
 
-- [Integración con Strava](STRAVA_INTEGRATION.md) - Guía completa de autenticación OAuth
-- [API Documentation](API_DOCUMENTATION.md) - Endpoints y contratos de la API
+| Documento | Descripción |
+|-----------|-------------|
+| [**Guía de Inicio Rápido**](docs/QUICK_START.md) | Setup en 5 minutos |
+| [**API Reference**](docs/API.md) | Endpoints y ejemplos |
+| [**Rutas Repetidas**](docs/RUTAS_REPETIDAS.md) | Feature de Strava |
+| [**Setup de Strava**](docs/STRAVA_SETUP.md) | Configuración OAuth |
+| [**Tests**](docs/TESTS.md) | Guía de testing |
+| [**Troubleshooting**](docs/TROUBLESHOOTING.md) | Solución de problemas |
+
+---
+
+## 🎯 Funcionalidades
+
+### 1. Visualización de Calidad del Aire
+
+- Mapa interactivo con Leaflet.js
+- Colores según AQI estándar EPA
+- Datos en tiempo real de ciudades españolas
+- Hotspots de contaminación
+
+### 2. Integración con Strava
+
+- OAuth 2.0 seguro
+- Detección de rutas más repetidas
+- Visualización en formato GeoJSON
+- Contador de frecuencia por ruta
+
+### 3. Geolocalización
+
+- Permiso del usuario
+- Reverse geocoding con Nominatim
+- Persistencia en sessionStorage
+- Flujo bidireccional (ubicación ↔ Strava)
+
+---
 
 ## 🏗️ Arquitectura
 
-### Backend (Spring Boot)
+### Backend (Spring Boot 3.3.3)
 
 ```
 src/main/java/com/aether/app/
 ├── air/                    # Servicios de calidad del aire
-│   └── AirQualityService.java
-├── location/               # Servicios de localización
-│   ├── LocationService.java
-│   ├── ReverseGeocodingService.java
-│   └── LocationConsent.java
+│   ├── AirQualityService.java
+│   └── OpenAQService.java
 ├── strava/                 # Integración con Strava
 │   ├── StravaAuthService.java
+│   ├── StravaActivityService.java
 │   ├── StravaToken.java
 │   └── StravaTokenRepository.java
-└── infrastructure/
-    └── web/
-        ├── controller/     # Controladores REST
-        │   ├── AirController.java
-        │   ├── LocationController.java
-        │   └── StravaController.java
-        └── dto/            # Data Transfer Objects
-            ├── StravaAthleteDTO.java
-            ├── StravaTokenResponseDTO.java
-            └── ...
+└── infrastructure/web/
+    ├── controller/         # Controladores REST
+    │   ├── AirController.java
+    │   └── StravaController.java
+    └── dto/                # Data Transfer Objects
+        ├── PolylineUtil.java
+        ├── RouteGeoJsonDTO.java
+        └── ...
 ```
 
 ### Frontend (Vanilla JS)
@@ -98,40 +128,42 @@ src/main/java/com/aether/app/
 src/main/resources/static/
 ├── index.html              # Página principal con mapa
 ├── login.html              # Página de autenticación Strava
-├── main.js                 # Lógica de la aplicación
+├── code.js                 # Lógica de la aplicación
 └── css/
     └── index.css           # Estilos
 ```
 
-## 🔌 API Endpoints
+---
+
+## 🔌 API Endpoints Principales
 
 ### Calidad del Aire
 
-- `GET /api/v1/air/quality/provinces` - Obtener AQI de todas las provincias
-- `GET /api/v1/air/quality/city/{city}` - Obtener AQI de una ciudad específica
-- `GET /api/v1/air/stations` - Obtener todas las estaciones de medición
+```
+GET /api/v1/air/quality/city/{cityId}
+GET /api/v1/air/quality/hotspots?lat={lat}&lon={lon}
+```
 
-### Localización
+### Strava
 
-- `POST /api/v1/location/consent` - Guardar consentimiento de ubicación
-- `GET /api/v1/location/latest` - Obtener última ubicación con consentimiento
-- `POST /api/v1/location/revoke/{id}` - Revocar consentimiento
+```
+GET /api/v1/strava/auth/login
+GET /api/v1/strava/auth/callback
+GET /api/v1/strava/routes/geojson?athleteId={id}&city={ciudad}
+GET /api/v1/strava/activities/city?athleteId={id}&city={ciudad}
+```
 
-### Strava OAuth
+Ver [docs/API.md](docs/API.md) para documentación completa.
 
-- `GET /api/v1/strava/auth/login` - Iniciar flujo de autenticación
-- `GET /api/v1/strava/auth/callback` - Callback de OAuth
-- `GET /api/v1/strava/auth/me` - Obtener usuario autenticado
-- `POST /api/v1/strava/auth/logout` - Cerrar sesión
+---
 
 ## 🎨 Tecnologías
 
 ### Backend
 - **Spring Boot 3.3.3** - Framework principal
-- **Spring Data JPA** - Persistencia de datos
-- **H2 Database** - Base de datos en memoria (desarrollo)
-- **Spring Validation** - Validación de datos
-- **RestTemplate** - Cliente HTTP para APIs externas
+- **Spring Data JPA** - Persistencia
+- **H2 Database** - BD en memoria (desarrollo)
+- **RestTemplate** - Cliente HTTP
 
 ### Frontend
 - **Leaflet.js** - Mapas interactivos
@@ -140,83 +172,131 @@ src/main/resources/static/
 - **Vanilla JavaScript** - Sin frameworks
 
 ### APIs Externas
-- **WAQI (World Air Quality Index)** - Datos de calidad del aire
-- **Strava API** - Autenticación y datos de actividades
-- **Nominatim (OpenStreetMap)** - Geocodificación inversa
+- **WAQI** - Datos de calidad del aire
+- **OpenAQ** - Hotspots de contaminación
+- **Strava API** - Actividades deportivas
+- **Nominatim** - Geocodificación
 
-## 🔐 Seguridad
-
-- ✅ OAuth 2.0 con Strava
-- ✅ Protección CSRF con parámetro state
-- ✅ Tokens almacenados de forma segura
-- ✅ Renovación automática de tokens expirados
-- ✅ Validación de entrada en todos los endpoints
+---
 
 ## 🧪 Testing
 
-Ejecutar tests:
 ```bash
+# Ejecutar todos los tests
 ./gradlew test
-```
 
-Ver reporte de tests:
-```bash
+# Ver reporte
 ./gradlew test
 open build/reports/tests/test/index.html
 ```
 
+**22 tests automatizados** cubriendo:
+- Decodificación de polylines
+- Agrupación de rutas
+- Endpoints REST
+- Lógica de negocio
+
+Ver [docs/TESTS.md](docs/TESTS.md) para guía completa.
+
+---
+
+## 🔐 Seguridad
+
+- ✅ OAuth 2.0 con Strava
+- ✅ Protección CSRF con state parameter
+- ✅ Tokens almacenados de forma segura en BD
+- ✅ Renovación automática de tokens
+- ✅ Client secret nunca expuesto al frontend
+- ✅ Validación de entrada en todos los endpoints
+
+---
+
 ## 📊 Base de Datos
 
-En desarrollo se usa H2 (en memoria). La base de datos incluye:
+En desarrollo se usa **H2** (en memoria):
 
-- `location_consent` - Consentimientos de ubicación
-- `strava_tokens` - Tokens de autenticación de Strava
-
-Para ver la consola H2 en desarrollo:
+```sql
+-- Tabla de tokens de Strava
+strava_tokens (
+  id, athlete_id, access_token, refresh_token,
+  expires_at, first_name, last_name, username,
+  city, state, country, created_at, updated_at
+)
 ```
-http://localhost:8080/h2-console
+
+Para producción, migrar a PostgreSQL.
+
+---
+
+## 🚀 Despliegue
+
+### Desarrollo
+```bash
+./gradlew bootRun
 ```
 
-Credenciales:
-- JDBC URL: `jdbc:h2:mem:devdb`
-- Usuario: `sa`
-- Password: *(vacío)*
+### Producción
 
-## 🚀 Producción
+1. Configurar PostgreSQL
+2. Actualizar `application.yml`
+3. Configurar variables de entorno
+4. Habilitar HTTPS
+5. Actualizar callback URL en Strava
 
-Para desplegar en producción:
+---
 
-1. Cambiar a PostgreSQL en `application.yml`
-2. Configurar variables de entorno seguras
-3. Habilitar HTTPS
-4. Configurar dominio en Strava API settings
-5. Actualizar `STRAVA_REDIRECT_URI`
+## 🎨 Escala de Colores AQI
+
+| AQI | Color | Estado |
+|-----|-------|--------|
+| 0-50 | 🟢 Verde | Good |
+| 51-100 | 🟡 Amarillo | Moderate |
+| 101-150 | 🟠 Naranja | Unhealthy for Sensitive Groups |
+| 151-200 | 🔴 Rojo | Unhealthy |
+| 201-300 | 🟣 Morado | Very Unhealthy |
+| 301+ | 🟤 Marrón | Hazardous |
+
+---
 
 ## 🤝 Contribuir
 
 1. Fork el proyecto
-2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
-3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
+2. Crea una rama (`git checkout -b feature/AmazingFeature`)
+3. Commit tus cambios (`git commit -m 'Add AmazingFeature'`)
 4. Push a la rama (`git push origin feature/AmazingFeature`)
 5. Abre un Pull Request
+
+---
 
 ## 📝 Licencia
 
 Este proyecto está bajo la Licencia MIT.
 
+---
+
 ## 👥 Equipo
 
 **Fighting Nerds** - Proyecto Aether
 
+---
+
 ## 🙏 Agradecimientos
 
-- World Air Quality Index Project por los datos de calidad del aire
-- Strava por su API de actividades deportivas
-- OpenStreetMap por los datos de mapas
-- Leaflet.js por la biblioteca de mapas
+- World Air Quality Index Project
+- Strava API
+- OpenStreetMap / Nominatim
+- Leaflet.js
+- OpenAQ
 
 ---
 
-**¿Preguntas?** Abre un issue en GitHub o contacta al equipo.
+## 📞 Soporte
 
+¿Problemas? Consulta:
+1. [Troubleshooting](docs/TROUBLESHOOTING.md)
+2. [API Docs](docs/API.md)
+3. Abre un issue en GitHub
 
+---
+
+**Última actualización:** 4 de Octubre de 2025
