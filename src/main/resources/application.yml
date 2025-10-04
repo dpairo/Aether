@@ -3,7 +3,7 @@ server:
 
 spring:
   application:
-    name: test_hackathon
+    name: Aether
   datasource:
     url: jdbc:h2:mem:devdb;DB_CLOSE_DELAY=-1;MODE=PostgreSQL
   jpa:
@@ -13,4 +13,15 @@ spring:
 
 logging:
   level:
-    java.test_hackathon.app: DEBUG
+    com.aether.app: DEBUG
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never
+      probes:
+        enabled: true
