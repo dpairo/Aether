@@ -32,6 +32,10 @@ air-quality:
     base-url: "http://api.waqi.info"
     token: "${WAQI_TOKEN:demo}"  # Use environment variable or demo token
     timeout: 5000
+  openaq:
+    base-url: "https://api.openaq.org/v2"
+    radius-meters: 5000  # Default search radius in meters (covers whole city)
+    max-hotspots: 3      # Maximum number of hotspots to return
   cities:
     spain:
       - name: "Madrid"
