@@ -89,12 +89,32 @@
                     </li>
                 </ul>
             </div>
+
+            <div class="login-container hide">
+                <h2>Iniciar sesión</h2>
+                <form action="/login" method="post">
+                    <div class="form-group">
+                        <label for="email">Correo electrónico</label>
+                        <input type="email" id="email" name="email" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Contraseña</label>
+                        <input type="password" id="password" name="password" required />
+                    </div>
+
+                    <div class="form-group">
+                        <button type="submit">Entrar</button>
+                    </div>
+                </form>
+
+                <p>¿No tienes cuenta? <a href="/register">Regístrate aquí</a></p>
+            </div>
+
             <div id="map"></div>
         </div>
-
-
-
     </div>
+
         <div id="status" class="status hide">
             <p>Aether desea obtener tu ubicación</p>
             <div>
@@ -111,6 +131,6 @@
         ></script>
 
     <!-- Lógica propia -->
-        <script src="main.js" defer></script>
+        <script src="code.js" defer></script>
     </body>
 </html>
