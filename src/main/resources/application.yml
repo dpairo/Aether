@@ -58,3 +58,11 @@ air-quality:
         lat: 41.6488
         lon: -0.8891
         city-id: "zaragoza"
+
+# Strava OAuth Configuration
+strava:
+  client-id: "${STRAVA_CLIENT_ID:179600}"
+  client-secret: "${STRAVA_CLIENT_SECRET:d411c16fb8c1d70f8d1fb95e080185c7f0c36985}"
+  redirect-uri: "${STRAVA_REDIRECT_URI:http://localhost:8080/api/v1/strava/auth/callback}"
+  auth-url: "https://www.strava.com/oauth/authorize"
+  token-url: "https://www.strava.com/oauth/token"

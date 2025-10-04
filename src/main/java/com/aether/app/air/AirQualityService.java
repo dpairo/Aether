@@ -100,6 +100,7 @@ public class AirQualityService {
                 city.longitude(),
                 null, // AQI unknown
                 "Unknown",
+                com.aether.app.infrastructure.web.dto.AQIColorUtil.getAQIColor(null), // Gray color for unknown
                 "Unknown",
                 new com.aether.app.infrastructure.web.dto.AirQualityDataDTO(
                         null, null, null, null, null, null
@@ -182,6 +183,7 @@ public class AirQualityService {
                 province.longitude(),
                 null, // AQI unknown
                 "Unknown",
+                com.aether.app.infrastructure.web.dto.AQIColorUtil.getAQIColor(null), // Gray color for unknown
                 "Unknown",
                 new com.aether.app.infrastructure.web.dto.AirQualityDataDTO(
                         null, null, null, null, null, null
