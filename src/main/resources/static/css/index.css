@@ -1,0 +1,245 @@
+/* Ocupa toda la ventana */
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    background: #000;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+}
+/* Mapa visible y responsive */
+#map{
+    flex: 1 1 auto;          /* toma el espacio restante */
+    height: 60vh;            /* alto cómodo */
+    min-height: 380px;       /* no se haga pequeño */
+    max-height: 70vh;        /* no crezca demasiado */
+    width: auto;             /* se ajusta por flex */
+    border-radius: 12px;
+    border: 4px solid #222;
+}
+
+
+/* Puedes ajustar el grosor/estética de la ruta vía Leaflet options en JS */
+
+.info-proyecto{
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background-image:linear-gradient(rgba(0,0,0,.55), rgba(0,0,0,.55)),
+    url("../assets/running2.jpg");
+    background-size: cover;        /* llena el contenedor sin deformar (puede recortar) */
+    background-position: center;   /* centra la imagen */
+    background-repeat: no-repeat;  /* evita mosaico */
+    min-height: 100vh;
+    border-bottom: 5px solid #1b1b1b;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.search-box{
+   padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    /* Ajusta según tu header */
+    color: #ffffff;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+}
+
+/* Etiqueta "Explore" */
+.search-box > p{
+    margin: 0;
+    font-weight: 700;
+    letter-spacing: .08em;
+    font-size: .95rem;
+    opacity: .9;
+}
+
+.search-box #search{
+    height: 44px;                    /* 48px si lo quieres más grande */
+    min-width: 280px;                /* ajusta a tu layout */
+    border-radius: 2px;
+    padding: 0 44px 0 16px;          /* deja espacio para la lupa a la derecha */
+    border: 2px solid rgba(255,255,255,.22);
+    background: rgba(255,255,255,.08);
+    color: #fff;
+    outline: none;
+    transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+    -webkit-appearance: none;
+}
+
+.actions{
+    position: absolute;
+    top: 16px;     /* o bottom:16px; si la quieres abajo dentro del div */
+    right: 16px;
+    display: flex;
+    gap: 8px;
+}
+
+.actions button{
+    height: 44px;                    /* 48px si lo quieres más grande */
+    min-width: 200px;                /* ajusta a tu layout */
+    border-radius: 8px;
+    padding: 0 20px;                 /* padding más equilibrado */
+    border: 2px solid rgba(255,255,255,.22);
+    background: rgba(255,255,255,.08);
+    color: #fff;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.actions button:hover {
+    background: rgba(255,255,255,.15);
+    border-color: rgba(255,255,255,.4);
+    transform: translateY(-2px);
+}
+
+.info-inner{
+    position: absolute;
+    left: 6px;     /* tu margen base */
+    bottom: 6px;   /* tu margen base */
+    padding: 80px;
+    /* +25% hacia la derecha y -10% hacia arriba, ajusta a tu gusto */
+    text-align: left; /* o center si te gusta */
+}
+.info-inner p{
+    color: white;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 25px;
+}
+h1{
+    font-size: 60px;
+    color: white;
+}
+
+.box{
+    background-color: #1b1b1b;
+    border-radius: 10px;
+
+}
+
+.main-box{
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    background: #1b1b1b;
+}
+.implementations{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    background-color: #2f2f2f;
+    width: 100%;
+    font-size: 20px;
+    border-bottom: 5px solid #1b1b1b;
+    height: 50px;
+    padding-top: 20px;
+    padding-left: 20px;
+}
+
+.implementations a{
+    color: white;
+    text-decoration: none;
+    padding: 15px 15px;
+    font-size: 20px;
+    transition: background-color 0.1s ease-out;
+}
+
+.implementations a:hover {
+    background-color: #1b1b1b;
+}
+
+.implementations a.active {
+    background-color: #1b1b1b;
+    border-bottom: 3px solid #0078ff;
+}
+
+
+
+.total-info-container{
+    width: 100%;
+    height: 100%;
+    background-color: white;
+}
+
+.information{
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 16px;
+    max-width: 1200px;  /* limita el ancho total */
+    margin: 0 auto;     /* centra en la página */
+}
+
+
+.status{
+    position: fixed;
+    inset: 0;                 /* top/right/bottom/left: 0 */
+    z-index: 2147483647;      /* por delante de casi todo */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    background: rgba(0,0,0,.9);
+    color: #fff;
+    border-radius: 12px;      /* verás bordes si el body no es negro */
+    padding: 20px;
+    margin: 0;                /* no hace falta centrar con margin:auto */
+}
+
+.status > div{
+    display: flex;
+    gap: .5rem;
+    flex-direction: row;
+}
+
+.status button{
+    border-radius: 15px;
+    padding: 10px 14px;
+}
+.status.hide{
+    display: none;
+}
+
+
+
+/* Leyenda AQI minimal */
+.aqi-legend{
+    --aqi-good:#2ECC71; --aqi-moderate:#F1C40F; --aqi-sensitive:#E67E22;
+    --aqi-unhealthy:#E74C3C; --aqi-very:#9B59B6; --aqi-hazard:#6E2C00;
+
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    background: rgba(255,255,255,.9);
+    border: 1px solid rgba(0,0,0,.08);
+    border-radius: 10px; padding: 10px; max-width: 420px;
+    backdrop-filter: blur(4px);
+}
+
+.aqi-list{ list-style:none; margin:0; padding:0; display:grid; gap:8px; }
+.aqi-list li{ display:grid; grid-template-columns: 18px 1fr; margin-top: 10px; align-items:center; gap:10px; font-size:13px; }
+
+.aqi-swatch{
+    width:18px; height:18px; border-radius:4px;
+    border:2px solid rgba(0,0,0,.25);
+    box-shadow: 0 0 0 1px rgba(255,255,255,.6) inset;
+}
+.aqi-meaning{ line-height:1.2; color:#111; }
+
+/* Colores */
+.aqi-good{background:var(--aqi-good);}
+.aqi-moderate{background:var(--aqi-moderate);}
+.aqi-sensitive{background:var(--aqi-sensitive);}
+.aqi-unhealthy{background:var(--aqi-unhealthy);}
+.aqi-very{background:var(--aqi-very);}
+.aqi-hazard{background:var(--aqi-hazard);}
+
+/* Modo oscuro opcional */
+@media (prefers-color-scheme: dark){
+    .aqi-legend{ background:rgba(22,22,22,.9); border-color:rgba(255,255,255,.08); }
+    .aqi-meaning{ color:#f2f2f2; }
+    .aqi-swatch{ border-color:rgba(255,255,255,.45); box-shadow:0 0 0 1px rgba(0,0,0,.4) inset; }
+}
