@@ -25,3 +25,36 @@ management:
       show-details: never
       probes:
         enabled: true
+
+# External API Configuration
+air-quality:
+  waqi:
+    base-url: "http://api.waqi.info"
+    token: "${WAQI_TOKEN:demo}"  # Use environment variable or demo token
+    timeout: 5000
+  cities:
+    spain:
+      - name: "Madrid"
+        lat: 40.4168
+        lon: -3.7038
+        city-id: "madrid"
+      - name: "Barcelona"
+        lat: 41.3851
+        lon: 2.1734
+        city-id: "barcelona"
+      - name: "Valencia"
+        lat: 39.4699
+        lon: -0.3763
+        city-id: "valencia"
+      - name: "Sevilla"
+        lat: 37.3891
+        lon: -5.9845
+        city-id: "sevilla"
+      - name: "Bilbao"
+        lat: 43.2627
+        lon: -2.9253
+        city-id: "bilbao"
+      - name: "Zaragoza"
+        lat: 41.6488
+        lon: -0.8891
+        city-id: "zaragoza"
