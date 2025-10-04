@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.Instant;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -143,6 +143,105 @@ public class StravaActivityService {
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         
         return EARTH_RADIUS_KM * c;
+    }
+    
+    /**
+     * Get the most repeated routes in a city
+     * Routes are grouped by similarity (start/end points within 100m)
+     * Returns up to 3 most repeated routes with their activity list
+     */
+    public List<RouteGroup> getMostRepeatedRoutes(Long athleteId, String cityName, int maxRoutes) {
+        List<StravaActivityDTO> activities = getActivitiesByCity(athleteId, cityName);
+        
+        if (activities.isEmpty()) {
+            log.info("No activities found in city '{}' for athlete {}", cityName, athleteId);
+            return List.of();
+        }
+        
+        // Filter activities that have valid start/end coordinates and polyline
+        List<StravaActivityDTO> validActivities = activities.stream()
+                .filter(a -> a.startLatLng() != null && a.startLatLng().size() >= 2)
+                .filter(a -> a.endLatLng() != null && a.endLatLng().size() >= 2)
+                .filter(a -> a.map() != null && a.map().summaryPolyline() != null)
+                .collect(Collectors.toList());
+        
+        if (validActivities.isEmpty()) {
+            log.info("No valid activities with routes in city '{}'", cityName);
+            return List.of();
+        }
+        
+        // Group similar routes
+        List<RouteGroup> routeGroups = new ArrayList<>();
+        
+        for (StravaActivityDTO activity : validActivities) {
+            boolean addedToGroup = false;
+            
+            // Try to find a matching group
+            for (RouteGroup group : routeGroups) {
+                if (areRouteSimilar(activity, group.representativeActivity)) {
+                    group.activities.add(activity);
+                    addedToGroup = true;
+                    break;
+                }
+            }
+            
+            // Create new group if no match found
+            if (!addedToGroup) {
+                RouteGroup newGroup = new RouteGroup();
+                newGroup.representativeActivity = activity;
+                newGroup.activities = new ArrayList<>();
+                newGroup.activities.add(activity);
+                routeGroups.add(newGroup);
+            }
+        }
+        
+        // Sort by number of repetitions (descending)
+        routeGroups.sort((g1, g2) -> Integer.compare(g2.activities.size(), g1.activities.size()));
+        
+        // Return top N routes
+        List<RouteGroup> topRoutes = routeGroups.stream()
+                .limit(maxRoutes)
+                .collect(Collectors.toList());
+        
+        log.info("Found {} unique routes in city '{}', returning top {}", 
+                routeGroups.size(), cityName, topRoutes.size());
+        
+        return topRoutes;
+    }
+    
+    /**
+     * Check if two routes are similar based on start and end points
+     * Routes are considered similar if start and end points are within 100m
+     */
+    private boolean areRouteSimilar(StravaActivityDTO route1, StravaActivityDTO route2) {
+        final double SIMILARITY_THRESHOLD_KM = 0.1; // 100 meters
+        
+        double startLat1 = route1.startLatLng().get(0);
+        double startLon1 = route1.startLatLng().get(1);
+        double endLat1 = route1.endLatLng().get(0);
+        double endLon1 = route1.endLatLng().get(1);
+        
+        double startLat2 = route2.startLatLng().get(0);
+        double startLon2 = route2.startLatLng().get(1);
+        double endLat2 = route2.endLatLng().get(0);
+        double endLon2 = route2.endLatLng().get(1);
+        
+        double startDistance = calculateDistance(startLat1, startLon1, startLat2, startLon2);
+        double endDistance = calculateDistance(endLat1, endLon1, endLat2, endLon2);
+        
+        return startDistance <= SIMILARITY_THRESHOLD_KM && endDistance <= SIMILARITY_THRESHOLD_KM;
+    }
+    
+    /**
+     * Helper class to group similar routes
+     */
+    public static class RouteGroup {
+        public StravaActivityDTO representativeActivity;
+        public List<StravaActivityDTO> activities;
+        
+        public int getRepetitions() {
+            return activities.size();
+        }
     }
 }
 

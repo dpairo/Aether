@@ -1,10 +1,6 @@
 package com.aether.app.infrastructure.web.controller;
 
-import com.aether.app.infrastructure.web.dto.StravaActivitiesResponseDTO;
-import com.aether.app.infrastructure.web.dto.StravaActivityDTO;
-import com.aether.app.infrastructure.web.dto.StravaAuthResponseDTO;
-import com.aether.app.infrastructure.web.dto.StravaErrorDTO;
-import com.aether.app.infrastructure.web.dto.StravaTokenResponseDTO;
+import com.aether.app.infrastructure.web.dto.*;
 import com.aether.app.strava.StravaActivityService;
 import com.aether.app.strava.StravaAuthService;
 import com.aether.app.strava.StravaToken;
@@ -16,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -36,11 +33,6 @@ public class StravaController {
         this.stravaActivityService = stravaActivityService;
     }
     
-    /**
-     * Initiate OAuth flow - redirects user to Strava authorization page
-     * 
-     * GET /api/v1/strava/auth/login
-     */
     @GetMapping("/auth/login")
     public void login(HttpServletResponse response) throws IOException {
         // Generate random state for CSRF protection
@@ -83,8 +75,12 @@ public class StravaController {
         }
         
         try {
+            log.info("Attempting to exchange code for token...");
+            
             // Exchange code for access token
             StravaTokenResponseDTO tokenResponse = stravaAuthService.exchangeCodeForToken(code);
+            
+            log.info("Token exchange successful. Saving token...");
             
             // Save token to database
             StravaToken savedToken = stravaAuthService.saveToken(tokenResponse);
@@ -96,8 +92,13 @@ public class StravaController {
             response.sendRedirect("/index.html?auth=success&athlete=" + savedToken.getAthleteId());
             
         } catch (Exception e) {
-            log.error("Error during OAuth callback: {}", e.getMessage(), e);
-            response.sendRedirect("/login.html?error=auth_failed");
+            log.error("❌ Error during OAuth callback: {}", e.getMessage(), e);
+            log.error("❌ Full stack trace:", e);
+            
+            // Send more detailed error message
+            String errorMsg = e.getMessage() != null ? e.getMessage() : "unknown_error";
+            response.sendRedirect("/login.html?error=auth_failed&details=" + 
+                    java.net.URLEncoder.encode(errorMsg, java.nio.charset.StandardCharsets.UTF_8));
         }
     }
     
@@ -228,6 +229,111 @@ public class StravaController {
             log.error("Error fetching activities near location: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new StravaErrorDTO("internal_error", "Failed to fetch activities"));
+        }
+    }
+    
+    /**
+     * Get most repeated routes in a city as GeoJSON
+     * This endpoint is called when user has both location and Strava authentication
+     * 
+     * GET /api/v1/strava/routes/geojson?athleteId=xxx&city=Madrid&limit=3
+     */
+    @GetMapping("/routes/geojson")
+    public ResponseEntity<?> getRoutesAsGeoJson(
+            @RequestParam Long athleteId,
+            @RequestParam String city,
+            @RequestParam(defaultValue = "3") Integer limit
+    ) {
+        try {
+            log.info("Fetching top {} routes for athlete {} in city '{}'", limit, athleteId, city);
+            
+            // Check if user is authenticated
+            var tokenOpt = stravaAuthService.getValidToken(athleteId);
+            if (tokenOpt.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(new StravaErrorDTO("not_authenticated", "User not authenticated with Strava"));
+            }
+            
+            // Get most repeated routes
+            List<StravaActivityService.RouteGroup> routeGroups = 
+                    stravaActivityService.getMostRepeatedRoutes(athleteId, city, limit);
+            
+            if (routeGroups.isEmpty()) {
+                log.info("No routes found in city '{}' for athlete {}", city, athleteId);
+                
+                RouteGeoJsonDTO.RouteMetadata emptyMetadata = new RouteGeoJsonDTO.RouteMetadata(
+                        athleteId, city, 0, 0, "No routes found in this city"
+                );
+                
+                return ResponseEntity.ok(RouteGeoJsonDTO.create(List.of(), emptyMetadata));
+            }
+            
+            // Convert to GeoJSON features
+            List<RouteGeoJsonDTO.RouteFeature> features = new ArrayList<>();
+            int totalRepetitions = 0;
+            
+            // Define colors for different routes
+            String[] colors = {"#E74C3C", "#3498DB", "#2ECC71"};
+            
+            for (int i = 0; i < routeGroups.size(); i++) {
+                StravaActivityService.RouteGroup group = routeGroups.get(i);
+                StravaActivityDTO representative = group.representativeActivity;
+                int repetitions = group.getRepetitions();
+                totalRepetitions += repetitions;
+                
+                // Decode polyline to coordinates
+                String polyline = representative.map().summaryPolyline();
+                if (polyline == null || polyline.isEmpty()) {
+                    log.warn("Activity {} has no polyline, skipping", representative.id());
+                    continue;
+                }
+                
+                List<List<Double>> coordinates = PolylineUtil.decode(polyline);
+                
+                if (coordinates.isEmpty()) {
+                    log.warn("Failed to decode polyline for activity {}", representative.id());
+                    continue;
+                }
+                
+                // Create properties
+                RouteGeoJsonDTO.RouteProperties properties = new RouteGeoJsonDTO.RouteProperties(
+                        representative.id(),
+                        representative.name(),
+                        representative.type(),
+                        representative.distance(),
+                        representative.movingTime(),
+                        representative.startDateLocal(),
+                        repetitions,
+                        colors[i % colors.length],
+                        representative.locationCity()
+                );
+                
+                // Create feature
+                features.add(RouteGeoJsonDTO.RouteFeature.create(coordinates, properties));
+            }
+            
+            // Create metadata
+            RouteGeoJsonDTO.RouteMetadata metadata = new RouteGeoJsonDTO.RouteMetadata(
+                    athleteId,
+                    city,
+                    features.size(),
+                    totalRepetitions,
+                    String.format("Found %d unique routes with %d total activities", 
+                            features.size(), totalRepetitions)
+            );
+            
+            // Create GeoJSON response
+            RouteGeoJsonDTO geoJson = RouteGeoJsonDTO.create(features, metadata);
+            
+            log.info("Returning {} routes as GeoJSON for athlete {} in city '{}'", 
+                    features.size(), athleteId, city);
+            
+            return ResponseEntity.ok(geoJson);
+            
+        } catch (Exception e) {
+            log.error("Error fetching routes as GeoJSON: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new StravaErrorDTO("internal_error", "Failed to fetch routes: " + e.getMessage()));
         }
     }
     

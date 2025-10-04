@@ -23,6 +23,9 @@ let cityLayer = null;
 let maskLayer = null;
 let turfLoaded = false;
 let hotspotMarkers = [];
+let routeLayers = [];
+let athleteId = null;
+let currentCity = null;
 
 
 /* ============================================================================
@@ -410,6 +413,153 @@ function getAQIColorFromValue(aqi) {
 }
 
 /* ============================================================================
+ *  STRAVA ROUTES - OBTENER Y DIBUJAR RUTAS MÁS REPETIDAS
+ * ========================================================================== */
+
+/**
+ * Get athlete ID from URL parameters (after Strava authentication)
+ */
+function getAthleteIdFromURL() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const athleteParam = urlParams.get('athlete');
+    if (athleteParam) {
+        // Save to sessionStorage for persistence
+        sessionStorage.setItem('athleteId', athleteParam);
+        return parseInt(athleteParam);
+    }
+    // Try to get from sessionStorage
+    const stored = sessionStorage.getItem('athleteId');
+    return stored ? parseInt(stored) : null;
+}
+
+/**
+ * Fetch repeated routes from backend
+ */
+async function fetchRepeatedRoutes(athleteId, city) {
+    try {
+        const url = `${API_BASE}/strava/routes/geojson?athleteId=${athleteId}&city=${encodeURIComponent(city)}&limit=3`;
+        console.log(`🔍 Fetching routes from: ${url}`);
+        
+        const response = await fetch(url);
+        
+        if (response.status === 401) {
+            console.warn('⚠️ Usuario no autenticado con Strava');
+            return null;
+        }
+        
+        if (!response.ok) {
+            console.warn(`⚠️ Error al obtener rutas: ${response.status}`);
+            return null;
+        }
+        
+        const geoJson = await response.json();
+        console.log('✅ Rutas obtenidas:', geoJson);
+        return geoJson;
+        
+    } catch (error) {
+        console.error('❌ Error fetching routes:', error);
+        return null;
+    }
+}
+
+/**
+ * Clear route layers from map
+ */
+function clearRouteLayers() {
+    routeLayers.forEach(layer => map.removeLayer(layer));
+    routeLayers = [];
+}
+
+/**
+ * Draw routes on map from GeoJSON
+ */
+function drawRoutesOnMap(geoJson) {
+    if (!geoJson || !geoJson.features || geoJson.features.length === 0) {
+        console.log('ℹ️ No hay rutas para dibujar');
+        return;
+    }
+    
+    clearRouteLayers();
+    
+    console.log(`🗺️ Dibujando ${geoJson.features.length} rutas en el mapa`);
+    
+    geoJson.features.forEach((feature, index) => {
+        const props = feature.properties;
+        const color = props.color || '#3498DB';
+        
+        // Create polyline
+        const layer = L.geoJSON(feature, {
+            style: {
+                color: color,
+                weight: 4,
+                opacity: 0.8
+            },
+            onEachFeature: (feature, layer) => {
+                // Create popup with route information
+                const distance = (props.distance / 1000).toFixed(2); // Convert to km
+                const time = Math.floor(props.movingTime / 60); // Convert to minutes
+                
+                const popupContent = `
+                    <div style="min-width: 200px;">
+                        <h3 style="margin: 0 0 10px 0; color: ${color};">
+                            🏃 ${props.name}
+                        </h3>
+                        <p style="margin: 5px 0;"><strong>Tipo:</strong> ${props.type}</p>
+                        <p style="margin: 5px 0;"><strong>Distancia:</strong> ${distance} km</p>
+                        <p style="margin: 5px 0;"><strong>Tiempo:</strong> ${time} min</p>
+                        <p style="margin: 5px 0;">
+                            <strong>Repeticiones:</strong> 
+                            <span style="color: ${color}; font-weight: bold; font-size: 1.2em;">
+                                ${props.repetitions}x
+                            </span>
+                        </p>
+                        <p style="margin: 5px 0; font-size: 0.85em; color: #666;">
+                            <em>${props.startDate ? new Date(props.startDate).toLocaleDateString('es-ES') : ''}</em>
+                        </p>
+                    </div>
+                `;
+                
+                layer.bindPopup(popupContent);
+            }
+        }).addTo(map);
+        
+        routeLayers.push(layer);
+    });
+    
+    console.log(`✅ ${geoJson.features.length} rutas dibujadas correctamente`);
+    
+    // Show success message
+    if (geoJson.metadata) {
+        console.log(`📊 ${geoJson.metadata.message}`);
+    }
+}
+
+/**
+ * Fetch and draw routes if both location and Strava auth are available
+ */
+async function fetchAndDrawRoutesIfAvailable(city) {
+    const athleteId = getAthleteIdFromURL();
+    
+    if (!athleteId) {
+        console.log('ℹ️ Usuario no autenticado con Strava, no se pueden obtener rutas');
+        return;
+    }
+    
+    if (!city) {
+        console.log('ℹ️ Ciudad no disponible, no se pueden obtener rutas');
+        return;
+    }
+    
+    console.log(`🔄 Obteniendo rutas para atleta ${athleteId} en ${city}...`);
+    
+    const geoJson = await fetchRepeatedRoutes(athleteId, city);
+    
+    if (geoJson) {
+        drawRoutesOnMap(geoJson);
+    }
+}
+
+/* ============================================================================
  *  EVENTOS UI
  * ========================================================================== */
 actionExplore?.addEventListener('click', () => {
@@ -434,6 +584,13 @@ permbutton?.addEventListener('click', () => {
             
             try {
                 cityName = await getCity(Ulat, Ulon);
+                currentCity = cityName; // Save for later use
+                
+                // Save location data in sessionStorage for later use
+                sessionStorage.setItem('currentCity', cityName);
+                sessionStorage.setItem('userLat', Ulat.toString());
+                sessionStorage.setItem('userLon', Ulon.toString());
+                
                 console.log(`📍 Ciudad detectada: ${cityName}`);
             } catch (e) {
                 console.warn('No se pudo obtener el nombre de la ciudad');
@@ -447,6 +604,8 @@ permbutton?.addEventListener('click', () => {
                 const cityData = await getCityAirQuality(cityName);
                 if (cityData) {
                     cityAqiColor = cityData.aqiColor;
+                    // Save color for later restoration
+                    sessionStorage.setItem('cityAqiColor', cityAqiColor);
                     console.log(`🎨 AQI: ${cityData.aqi}, Color: ${cityAqiColor}, Estado: ${cityData.aqiStatus}`);
                 }
             } catch (e) {
@@ -519,6 +678,13 @@ permbutton?.addEventListener('click', () => {
             } catch (e) {
                 console.error('⚠️ Error al generar puntos contaminados:', e);
             }
+            
+            // 7. Obtener y dibujar rutas más repetidas de Strava (si el usuario está autenticado)
+            try {
+                await fetchAndDrawRoutesIfAvailable(cityName);
+            } catch (e) {
+                console.error('⚠️ Error al obtener rutas de Strava:', e);
+            }
 
             statusEl?.classList.add('hide');
         },
@@ -542,4 +708,72 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('🚀 Inicializando AETHER...');
     initMap();
     console.log('✅ AETHER listo - Esperando ubicación del usuario');
+    
+    // Check if user just authenticated with Strava
+    const urlParams = new URLSearchParams(window.location.search);
+    const authSuccess = urlParams.get('auth');
+    const athleteParam = urlParams.get('athlete');
+    
+    if (authSuccess === 'success' && athleteParam) {
+        console.log('✅ Usuario autenticado con Strava, athlete ID:', athleteParam);
+        sessionStorage.setItem('athleteId', athleteParam);
+        
+        // Check if we already have a city saved
+        const savedCity = sessionStorage.getItem('currentCity');
+        const savedLat = sessionStorage.getItem('userLat');
+        const savedLon = sessionStorage.getItem('userLon');
+        
+        if (savedCity && savedLat && savedLon) {
+            console.log('🔄 Ciudad previamente detectada:', savedCity);
+            console.log('🔄 Cargando rutas automáticamente...');
+            
+            // Restore the map view and fetch routes
+            (async () => {
+                try {
+                    const lat = parseFloat(savedLat);
+                    const lon = parseFloat(savedLon);
+                    
+                    // Restore city visualization
+                    const cityAqiColor = sessionStorage.getItem('cityAqiColor') || '#3b82f6';
+                    
+                    // Get city polygon
+                    const fc = await fetchCityPolygon(lat, lon);
+                    if (fc) {
+                        await updateCityLayout(fc, cityAqiColor);
+                    } else {
+                        map.setView([lat, lon], 12);
+                    }
+                    
+                    // Add user marker
+                    if (!userMarker) {
+                        userMarker = L.marker([lat, lon], {
+                            title: 'Mi ubicación',
+                            icon: L.icon({
+                                iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+                                shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+                                iconSize: [25, 41],
+                                iconAnchor: [12, 41],
+                                popupAnchor: [1, -34],
+                                shadowSize: [41, 41]
+                            })
+                        }).addTo(map);
+                    }
+                    
+                    // Fetch and draw routes NOW
+                    await fetchAndDrawRoutesIfAvailable(savedCity);
+                    
+                    console.log('✅ Rutas cargadas después de autenticación');
+                } catch (e) {
+                    console.error('Error al cargar rutas después de autenticación:', e);
+                }
+            })();
+        } else {
+            console.log('ℹ️ Aún no hay ubicación guardada. Esperando a que el usuario proporcione su ubicación.');
+        }
+        
+        // Clean URL (remove query parameters)
+        if (window.history && window.history.replaceState) {
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+    }
 });

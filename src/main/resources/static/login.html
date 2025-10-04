@@ -218,6 +218,7 @@
         window.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
             const error = urlParams.get('error');
+            const details = urlParams.get('details');
             
             if (error) {
                 const errorMsg = document.getElementById('error-message');
@@ -231,12 +232,21 @@
                         message = 'Authorization code is missing. Please try again.';
                         break;
                     case 'auth_failed':
-                        message = 'Authentication failed. Please try again later.';
+                        message = 'Authentication failed.';
+                        if (details) {
+                            message += '\n\nDetails: ' + decodeURIComponent(details);
+                        }
+                        message += '\n\nCommon causes:\n• Authorization code already used (try again)\n• Invalid credentials\n• Callback URL mismatch';
                         break;
                 }
                 
                 errorMsg.textContent = message;
+                errorMsg.style.whiteSpace = 'pre-wrap';
                 errorMsg.classList.add('show');
+                
+                // Log for debugging
+                console.error('❌ Strava authentication error:', error);
+                if (details) console.error('❌ Error details:', decodeURIComponent(details));
             }
         });
 
