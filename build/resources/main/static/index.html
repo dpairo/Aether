@@ -1,11 +1,113 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>
-        Title</title>
-</head>
-<body>
+    <meta charset="utf-8" />
+    <title>Mapa + Ruta OSRM</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-</body>
+    <!-- Leaflet CSS -->
+    <link
+            rel="stylesheet"
+            href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+            integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+            crossorigin=""
+    />
+    <!-- fontawesome -->
+    <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    />
+
+    <!-- Estilos propios -->
+    <link rel="stylesheet" href="css/index.css" />
+    <script src="https://unpkg.com/leaflet-gpx@2.3.0/dist/leaflet-gpx.min.js"></script>
+</head>
+    <body>
+
+
+    <div class="info-proyecto">
+        <div class="search-box">
+            <p>Explore</p>
+            <input type="text" name="search" id="search" placeholder="search...">
+        </div>
+
+        <div class="actions">
+            <button type="submit" id="action-explore">Explore my location <i class="fa-solid fa-location-dot"></i></button>
+            <button type="submit" id="action-find">Find better routes <i class="fa-solid fa-map-location-dot"></i></button>
+        </div>
+
+        <div class="info-inner">
+            <h1 class="tittle">Proyecto AETHER</h1>
+            <p class="subtittle">fihgting nerds</p>
+        </div>
+    </div>
+
+    <div id="main-box" class="main-box">
+        <div id="implementations" class="implementations">
+            <a title="local pollution" id="local-pollution-mode">
+                <div class="navlink">
+                    <title>Show Local Pollution</title>
+                    <p>Show Local Pollution</p>
+                </div>
+            </a>
+            <a title="better route" id="better-route-mode">
+                <div class="navlink">
+                    <title>Better route</title>
+                    <p>Better route</p>
+                </div>
+            </a>
+        </div>
+        <div class="information">
+            <div class="aqi-legend" role="group" aria-label="Leyenda AQI">
+                <ul class="aqi-list">
+                    <li>
+                        <span class="aqi-swatch aqi-good" aria-hidden="true" title="#2ECC71"></span>
+                        <span class="aqi-meaning">Aire limpio, sin riesgos.</span>
+                    </li>
+                    <li>
+                        <span class="aqi-swatch aqi-moderate" aria-hidden="true" title="#F1C40F"></span>
+                        <span class="aqi-meaning">Aceptable; puede afectar a personas sensibles.</span>
+                    </li>
+                    <li>
+                        <span class="aqi-swatch aqi-sensitive" aria-hidden="true" title="#E67E22"></span>
+                        <span class="aqi-meaning">Personas con asma, niños y ancianos pueden sufrir.</span>
+                    </li>
+                    <li>
+                        <span class="aqi-swatch aqi-unhealthy" aria-hidden="true" title="#E74C3C"></span>
+                        <span class="aqi-meaning">Riesgo para toda la población.</span>
+                    </li>
+                    <li>
+                        <span class="aqi-swatch aqi-very" aria-hidden="true" title="#9B59B6"></span>
+                        <span class="aqi-meaning">Riesgo serio para la salud.</span>
+                    </li>
+                    <li>
+                        <span class="aqi-swatch aqi-hazard" aria-hidden="true" title="#6E2C00"></span>
+                        <span class="aqi-meaning">Alerta sanitaria, muy nocivo.</span>
+                    </li>
+                </ul>
+            </div>
+            <div id="map"></div>
+        </div>
+
+
+
+    </div>
+        <div id="status" class="status hide">
+            <p>Aether desea obtener tu ubicación</p>
+            <div>
+                <button type="submit" id="perm">Permitir</button>
+                <button type="submit" id="state">Denegar</button>
+            </div>
+        </div>
+
+        <!-- Leaflet JS -->
+        <script
+                src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+                integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+                crossorigin=""
+        ></script>
+
+    <!-- Lógica propia -->
+        <script src="main.js" defer></script>
+    </body>
 </html>
