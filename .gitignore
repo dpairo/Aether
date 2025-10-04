@@ -2,20 +2,19 @@
 .DS_Store
 Thumbs.db
 
-# --- Java/Build outputs ---
-*.class
-*.log
-*.ctxt
-hs_err_pid*
-replay_pid*
-
-# --- Gradle ---
+# --- Gradle / build outputs ---
 .gradle/
 **/.gradle/
 build/
 **/build/
 !gradle/wrapper/gradle-wrapper.jar
 !gradle/wrapper/gradle-wrapper.properties
+
+# --- Java ---
+*.class
+*.log
+hs_err_pid*
+replay_pid*
 
 # --- IntelliJ IDEA ---
 .idea/
@@ -47,14 +46,3 @@ nbproject/private/
 **/jacoco/
 **/surefire-reports/
 **/coverage/
-
-# --- Spring Boot (config locales/no sensibles) ---
-application-local.properties
-application-local.yml
-application-*.local.properties
-application-*.local.yml
-.env
-.env.*
-!.env.example
-
-# --- Otros ---
