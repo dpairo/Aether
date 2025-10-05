@@ -1,8 +1,8 @@
 <!doctype html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="utf-8" />
-    <title>Mapa + Ruta OSRM</title>
+    <title>Map + OSRM Route</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <!-- Leaflet CSS -->
@@ -22,106 +22,133 @@
     <link rel="stylesheet" href="css/index.css" />
     <script src="https://unpkg.com/leaflet-gpx@2.3.0/dist/leaflet-gpx.min.js"></script>
 </head>
-    <body>
+<body>
 
 
-    <div class="info-proyecto">
-        <div class="search-box">
-            <p>Buscar ciudad española</p>
-            <input type="text" name="search" id="search" placeholder="Ej: Madrid, Barcelona, Valencia...">
-            <button type="button" id="search-btn" title="Buscar ciudad">
-                <i class="fa-solid fa-magnifying-glass"></i>
-            </button>
-        </div>
-
-        <div class="actions">
-            <button type="submit" id="action-explore">Explore my location <i class="fa-solid fa-location-dot"></i></button>
-            <a href="login.html" style="text-decoration: none">
-                <button href="login.html" type="submit" id="action-find">
-                    <i class="fa-brands fa-strava"></i> Connect with Strava
-                </button>
-            </a>
-        </div>
-
-        <div class="info-inner">
-            <h1 class="tittle">AETHER</h1>
-            <p class="subtittle">fighting nerds</p>
-        </div>
+<div class="info-proyecto">
+    <div class="search-box">
+        <p>Explore your city</p>
+        <input type="text" name="search" id="search" placeholder="e.g., Madrid, Barcelona, Valencia...">
+        <button type="button" id="search-btn" title="Search city">
+            <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
     </div>
 
-    <div id="main-box" class="main-box">
-        <div class="information">
-            <div class="aqi-legend" role="group" aria-label="Leyenda AQI">
-                <h3>📊 Escala típica del AQI (EPA, usada en muchos países)</h3>
+    <div class="actions">
+        <button type="submit" id="action-explore">Explore my location <i class="fa-solid fa-location-dot"></i></button>
+        <a href="login.html" style="text-decoration: none">
+            <button href="login.html" type="submit" id="action-find">
+                <i class="fa-brands fa-strava"></i> Connect with Strava
+            </button>
+        </a>
+    </div>
+
+    <div class="info-inner">
+        <h1 class="tittle">AETHER</h1>
+        <p class="subtittle">YOUR PATH TO CLEAN AIR</p>
+    </div>
+</div>
+
+<div id="main-box" class="main-box">
+    <div class="information">
+        <div class="sidebar-container" style="color: white">
+            <div class="best-time-widget" role="region" aria-label="Best time to go out">
+                <h3>🌤️ Best time to go out today</h3>
+                <div class="best-time-content">
+                    <p class="meta" aria-label="city and date">Valencia — Sunday, October 5, 2025</p>
+                    <ul id="best-time-slots" class="time-slots" aria-label="Recommended time windows" style="color: white;" >
+                        <li class="time-slot" >
+                            <strong>08:30–09:30</strong>
+                            <span class="note">· good if you’re an early bird (some traffic)</span>
+                        </li>
+                        <li class="time-slot">
+                            <strong>10:00–12:00</strong>
+                            <span class="note">· great light, lighter traffic, good activity</span>
+                        </li>
+                        <li class="time-slot">
+                            <strong>19:30–22:00</strong>
+                            <span class="note">· cooler temps, lower ozone, lively atmosphere</span>
+                        </li>
+                    </ul>
+
+                    <p class="slot-hint" role="note">
+                        Avoid <strong>13:00–17:00</strong> (radiation/ozone) and <strong>17:30–19:00</strong> (traffic).
+                    </p>
+                </div>
+            </div>
+
+            <div class="aqi-legend" role="group" aria-label="AQI legend" style="color: white">
+                <h3 style="color: white">📊 Typical AQI scale (EPA, used in many countries)</h3>
                 <ul class="aqi-list">
                     <li>
                         <span class="aqi-swatch aqi-good" aria-hidden="true" title="#2ECC71"></span>
-                        <span class="aqi-meaning">Aire limpio, sin riesgos.</span>
+                        <span class="aqi-meaning">Clean air, no risk.</span>
                     </li>
                     <li>
                         <span class="aqi-swatch aqi-moderate" aria-hidden="true" title="#F1C40F"></span>
-                        <span class="aqi-meaning">Aceptable; puede afectar a personas sensibles.</span>
+                        <span class="aqi-meaning">Acceptable; may affect sensitive groups.</span>
                     </li>
                     <li>
                         <span class="aqi-swatch aqi-sensitive" aria-hidden="true" title="#E67E22"></span>
-                        <span class="aqi-meaning">Personas con asma, niños y ancianos pueden sufrir.</span>
+                        <span class="aqi-meaning">People with asthma, children, and seniors may be affected.</span>
                     </li>
                     <li>
                         <span class="aqi-swatch aqi-unhealthy" aria-hidden="true" title="#E74C3C"></span>
-                        <span class="aqi-meaning">Riesgo para toda la población.</span>
+                        <span class="aqi-meaning">Risk for the general population.</span>
                     </li>
                     <li>
                         <span class="aqi-swatch aqi-very" aria-hidden="true" title="#9B59B6"></span>
-                        <span class="aqi-meaning">Riesgo serio para la salud.</span>
+                        <span class="aqi-meaning">Serious health risk.</span>
                     </li>
                     <li>
                         <span class="aqi-swatch aqi-hazard" aria-hidden="true" title="#6E2C00"></span>
-                        <span class="aqi-meaning">Alerta sanitaria, muy nocivo.</span>
+                        <span class="aqi-meaning">Health alert, very harmful.</span>
                     </li>
                 </ul>
             </div>
-
-            <div class="login-container hide">
-                <h2>Iniciar sesión</h2>
-                <form action="/login" method="post">
-                    <div class="form-group">
-                        <label for="email">Correo electrónico</label>
-                        <input type="email" id="email" name="email" required />
-                    </div>
-
-                    <div class="form-group">
-                        <label for="password">Contraseña</label>
-                        <input type="password" id="password" name="password" required />
-                    </div>
-
-                    <div class="form-group">
-                        <button type="submit">Entrar</button>
-                    </div>
-                </form>
-
-                <p>¿No tienes cuenta? <a href="/register">Regístrate aquí</a></p>
-            </div>
-
-            <div id="map"></div>
         </div>
+
+        <div class="login-container hide">
+            <h2>Sign in</h2>
+            <form action="/login" method="post">
+                <div class="form-group">
+                    <label for="email">Email address</label>
+                    <input type="email" id="email" name="email" required />
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required />
+                </div>
+
+                <div class="form-group">
+                    <button type="submit">Log in</button>
+                </div>
+            </form>
+
+            <p>Don’t have an account? <a href="/register">Register here</a></p>
+        </div>
+
+        <div id="map"></div>
     </div>
+</div>
 
-        <div id="status" class="status hide">
-            <p>Aether desea obtener tu ubicación</p>
-            <div>
-                <button type="submit" id="perm">Permitir</button>
-                <button type="submit" id="state">Denegar</button>
-            </div>
-        </div>
+<div id="status" class="status hide">
+    <p>Aether would like to access your location</p>
+    <div>
+        <button type="submit" id="perm">Allow</button>
+        <button type="submit" id="state">Deny</button>
+    </div>
+</div>
 
-        <!-- Leaflet JS -->
-        <script
-                src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-                integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-                crossorigin=""
-        ></script>
+<!-- Leaflet JS -->
+<script
+        src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+        crossorigin=""
+></script>
 
-    <!-- Lógica propia -->
-        <script src="code.js" defer></script>
-    </body>
+<!-- Lógica propia -->
+<script src="code.js" defer></script>
+</body>
 </html>

@@ -416,6 +416,263 @@ function getAQIColorFromValue(aqi) {
 }
 
 /* ============================================================================
+ *  GENERATE ALTERNATIVE ROUTES - CREAR RUTAS ALTERNATIVAS
+ * ========================================================================== */
+
+/**
+ * Generate a random point inside city polygon
+ */
+function generateRandomPointInCity(cityPolygon, bbox, maxAttempts = 100) {
+    const [minLng, minLat, maxLng, maxLat] = bbox;
+    
+    for (let i = 0; i < maxAttempts; i++) {
+        const randomLat = minLat + Math.random() * (maxLat - minLat);
+        const randomLng = minLng + Math.random() * (maxLng - minLng);
+        const point = turf.point([randomLng, randomLat]);
+        
+        if (turf.booleanPointInPolygon(point, cityPolygon)) {
+            return [randomLat, randomLng];
+        }
+    }
+    
+    return null;
+}
+
+/**
+ * Generate an alternative route between two points with intermediate waypoints
+ */
+function generateAlternativeRoute(cityPolygon, bbox, startPoint, endPoint, routeIndex) {
+    try {
+        const coordinates = [startPoint];
+        
+        // Número de puntos intermedios (varía según la ruta para hacerlas más diferentes)
+        const numWaypoints = 2 + routeIndex; // Ruta 0: 2 puntos, Ruta 1: 3 puntos, Ruta 2: 4 puntos
+        
+        // Calcular la línea recta entre origen y destino
+        const startLng = startPoint[1];
+        const startLat = startPoint[0];
+        const endLng = endPoint[1];
+        const endLat = endPoint[0];
+        
+        // Generar puntos intermedios con desviación lateral
+        for (let i = 0; i < numWaypoints; i++) {
+            const t = (i + 1) / (numWaypoints + 1); // Posición a lo largo de la línea (0 a 1)
+            
+            // Punto en la línea recta
+            const straightLat = startLat + t * (endLat - startLat);
+            const straightLng = startLng + t * (endLng - startLng);
+            
+            // Añadir desviación perpendicular a la línea
+            // Cada ruta tiene una desviación diferente
+            const deviationFactor = (routeIndex === 0) ? 0.15 : (routeIndex === 1) ? -0.15 : 0.05;
+            const deviation = deviationFactor * (1 - Math.abs(2 * t - 1)); // Mayor en el centro
+            
+            // Vector perpendicular
+            const dx = endLng - startLng;
+            const dy = endLat - startLat;
+            const perpLng = -dy * deviation;
+            const perpLat = dx * deviation;
+            
+            const waypointLat = straightLat + perpLat;
+            const waypointLng = straightLng + perpLng;
+            
+            // Verificar que el punto esté dentro del polígono
+            const waypointTest = turf.point([waypointLng, waypointLat]);
+            if (turf.booleanPointInPolygon(waypointTest, cityPolygon)) {
+                coordinates.push([waypointLat, waypointLng]);
+            } else {
+                // Si no está dentro, usar el punto en la línea recta
+                coordinates.push([straightLat, straightLng]);
+            }
+        }
+        
+        coordinates.push(endPoint);
+        
+        return coordinates;
+        
+    } catch (e) {
+        console.error('Error generando ruta alternativa:', e);
+        return [startPoint, endPoint]; // Fallback: línea recta
+    }
+}
+
+/**
+ * Generate 3 alternative routes within city polygon
+ * All routes start at the same point and end at the same point
+ */
+function generateRandomRoutesInCity(cityFeatureCollection, numRoutes = 3) {
+    console.log('Generando rutas alternativas en la ciudad...');
+    
+    if (!window.turf) {
+        console.error('❌ Turf.js no está disponible');
+        return [];
+    }
+    
+    if (!cityFeatureCollection || !cityFeatureCollection.features || !cityFeatureCollection.features[0]) {
+        console.error('❌ Polígono de ciudad inválido');
+        return [];
+    }
+    
+    const cityPolygon = cityFeatureCollection.features[0];
+    const bbox = turf.bbox(cityPolygon);
+    const [minLng, minLat, maxLng, maxLat] = bbox;
+    
+    console.log('BBox de la ciudad:', bbox);
+    
+    // Generar punto de inicio único para todas las rutas
+    const startPoint = generateRandomPointInCity(cityPolygon, bbox);
+    if (!startPoint) {
+        console.error('❌ No se pudo generar punto de inicio');
+        return [];
+    }
+    
+    // Generar punto de destino único para todas las rutas (diferente del inicio)
+    let endPoint = null;
+    let attempts = 0;
+    const maxAttempts = 100;
+    
+    while (!endPoint && attempts < maxAttempts) {
+        attempts++;
+        const candidatePoint = generateRandomPointInCity(cityPolygon, bbox);
+        
+        if (candidatePoint) {
+            // Verificar que esté a una distancia razonable del punto de inicio
+            const distance = turf.distance(
+                turf.point([startPoint[1], startPoint[0]]),
+                turf.point([candidatePoint[1], candidatePoint[0]]),
+                { units: 'kilometers' }
+            );
+            
+            // Distancia mínima: 20% del ancho del bbox
+            const bboxWidth = turf.distance(
+                turf.point([minLng, minLat]),
+                turf.point([maxLng, minLat]),
+                { units: 'kilometers' }
+            );
+            const minDistance = bboxWidth * 0.2;
+            
+            if (distance >= minDistance) {
+                endPoint = candidatePoint;
+            }
+        }
+    }
+    
+    if (!endPoint) {
+        console.error('❌ No se pudo generar punto de destino');
+        return [];
+    }
+    
+    console.log('✅ Punto de inicio:', startPoint);
+    console.log('✅ Punto de destino:', endPoint);
+    
+    // Calcular distancia total
+    const totalDistance = turf.distance(
+        turf.point([startPoint[1], startPoint[0]]),
+        turf.point([endPoint[1], endPoint[0]]),
+        { units: 'kilometers' }
+    );
+    
+    // Generar las 3 rutas alternativas
+    const routes = [];
+    const routeColors = ['#E74C3C', '#3498DB', '#3498DB']; // 1 roja, 2 azules
+    const routeNames = ['Ruta Rápida', 'Ruta Panorámica', 'Ruta Alternativa'];
+    
+    for (let i = 0; i < numRoutes; i++) {
+        const routeCoordinates = generateAlternativeRoute(
+            cityPolygon,
+            bbox,
+            startPoint,
+            endPoint,
+            i
+        );
+        
+        if (routeCoordinates && routeCoordinates.length >= 2) {
+            routes.push({
+                coordinates: routeCoordinates,
+                color: routeColors[i],
+                name: routeNames[i],
+                distance: (totalDistance * (1 + i * 0.1) * 1000).toFixed(0), // Distancia estimada en metros
+                startPoint: startPoint,
+                endPoint: endPoint
+            });
+            
+            console.log(`✅ ${routeNames[i]} generada con éxito`);
+        }
+    }
+    
+    console.log(`✅ Total de rutas generadas: ${routes.length}`);
+    return routes;
+}
+
+/**
+ * Draw generated routes on map
+ */
+function drawGeneratedRoutes(routes) {
+    if (!routes || routes.length === 0) {
+        console.log('ℹ️ No hay rutas generadas para dibujar');
+        return;
+    }
+    
+    console.log(`🗺️ Dibujando ${routes.length} rutas generadas en el mapa`);
+    
+    routes.forEach((route, index) => {
+        // Crear polyline para la ruta
+        const polyline = L.polyline(route.coordinates, {
+            color: route.color,
+            weight: 4,
+            opacity: 0.8,
+            smoothFactor: 1
+        }).addTo(map);
+        
+        // Añadir marcador en el punto de inicio (verde)
+        const startMarker = L.circleMarker(route.startPoint, {
+            radius: 8,
+            fillColor: '#2ECC71',
+            color: '#ffffff',
+            weight: 2,
+            opacity: 1,
+            fillOpacity: 0.9
+        }).addTo(map);
+        
+        // Añadir marcador en el punto de destino (naranja)
+        const endMarker = L.circleMarker(route.endPoint, {
+            radius: 8,
+            fillColor: '#E67E22',
+            color: '#ffffff',
+            weight: 2,
+            opacity: 1,
+            fillOpacity: 0.9
+        }).addTo(map);
+        
+        // Crear popup con información de la ruta
+        const distance = (route.distance / 1000).toFixed(2);
+        const popupContent = `
+            <div style="min-width: 200px;">
+                <h3 style="margin: 0 0 10px 0; color: ${route.color};">
+                    🏃 ${route.name}
+                </h3>
+                <p style="margin: 5px 0;"><strong>Tipo:</strong> Ruta Alternativa</p>
+                <p style="margin: 5px 0;"><strong>Distancia estimada:</strong> ${distance} km</p>
+                <p style="margin: 5px 0; font-size: 0.85em; color: #666;">
+                    <em>Ruta generada automáticamente</em>
+                </p>
+            </div>
+        `;
+        
+        polyline.bindPopup(popupContent);
+        startMarker.bindPopup(`<strong>🟢 Inicio</strong><br>${popupContent}`);
+        endMarker.bindPopup(`<strong>🟠 Destino</strong><br>${popupContent}`);
+        
+        // Guardar referencias para poder limpiarlas después
+        routeLayers.push(polyline);
+        routeLayers.push(startMarker);
+        routeLayers.push(endMarker);
+    });
+    
+    console.log(`✅ ${routes.length} rutas dibujadas correctamente`);
+}
+
+/* ============================================================================
  *  STRAVA ROUTES - OBTENER Y DIBUJAR RUTAS MÁS REPETIDAS
  * ========================================================================== */
 
@@ -661,6 +918,22 @@ async function searchAndDisplayCity(cityName) {
             console.error('⚠️ Error al obtener rutas de Strava:', e);
         }
         
+        // 6. Generar y dibujar 3 rutas alternativas (1 roja, 2 azules)
+        // Se dibuja después de Strava para no ser borradas
+        try {
+            if (fc) {
+                await ensureTurf();
+                console.log('🔄 Generando 3 rutas alternativas para la ciudad...');
+                const generatedRoutes = generateRandomRoutesInCity(fc, 3);
+                if (generatedRoutes && generatedRoutes.length > 0) {
+                    drawGeneratedRoutes(generatedRoutes);
+                    console.log(`✅ Generadas ${generatedRoutes.length} rutas alternativas en ${cityNameFound}`);
+                }
+            }
+        } catch (e) {
+            console.error('⚠️ Error al generar rutas alternativas:', e);
+        }
+        
         console.log(`✅ Ciudad ${cityNameFound} mostrada exitosamente`);
         
     } catch (error) {
@@ -823,6 +1096,22 @@ permbutton?.addEventListener('click', () => {
             } catch (e) {
                 console.error('⚠️ Error al obtener rutas de Strava:', e);
             }
+            
+            // 8. Generar y dibujar 3 rutas alternativas (1 roja, 2 azules)
+            // Se dibuja después de Strava para no ser borradas
+            try {
+                if (fc) {
+                    await ensureTurf();
+                    console.log('🔄 Generando 3 rutas alternativas para la ciudad...');
+                    const generatedRoutes = generateRandomRoutesInCity(fc, 3);
+                    if (generatedRoutes && generatedRoutes.length > 0) {
+                        drawGeneratedRoutes(generatedRoutes);
+                        console.log(`✅ Generadas ${generatedRoutes.length} rutas alternativas en ${cityName}`);
+                    }
+                }
+            } catch (e) {
+                console.error('⚠️ Error al generar rutas alternativas:', e);
+            }
 
             statusEl?.classList.add('hide');
         },
@@ -903,6 +1192,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     // Fetch and draw routes NOW
                     await fetchAndDrawRoutesIfAvailable(savedCity);
+                    
+                    // Generate and draw alternative routes (after Strava routes to avoid being cleared)
+                    if (fc) {
+                        await ensureTurf();
+                        console.log('🔄 Generando 3 rutas alternativas para la ciudad...');
+                        const generatedRoutes = generateRandomRoutesInCity(fc, 3);
+                        if (generatedRoutes && generatedRoutes.length > 0) {
+                            drawGeneratedRoutes(generatedRoutes);
+                            console.log(`✅ Generadas ${generatedRoutes.length} rutas alternativas en ${savedCity}`);
+                        }
+                    }
                     
                     console.log('✅ Rutas cargadas después de autenticación');
                 } catch (e) {
