@@ -674,6 +674,12 @@ searchInput?.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
         const cityName = searchInput.value.trim();
         searchAndDisplayCity(cityName);
+
+        const el = document.getElementById('box');
+        el.scrollTo({
+            top: el.scrollHeight,
+            behavior: 'smooth'
+        });
     }
 });
 
@@ -681,6 +687,10 @@ searchInput?.addEventListener('keypress', (e) => {
 searchBtn?.addEventListener('click', () => {
     const cityName = searchInput.value.trim();
     searchAndDisplayCity(cityName);
+    window.scrollTo({
+        top: document.documentElement.scrollHeight,
+        behavior: 'smooth'   // ← animación suave
+    });
 });
 
 /* ============================================================================
@@ -691,8 +701,12 @@ actionExplore?.addEventListener('click', () => {
 });
 
 actionFind?.addEventListener('click', () => {
-    window.location.href = '/api/v1/strava/auth/login';
+    window.scrollTo({
+        top: document.documentElement.scrollHeight,
+        behavior: 'smooth'   // ← animación suave
+    });
 });
+
 
 permbutton?.addEventListener('click', () => {
     statusEl?.classList.toggle('hide', false);
@@ -823,6 +837,10 @@ permbutton?.addEventListener('click', () => {
             timeout: 10000
         }
     );
+    window.scrollTo({
+        top: document.documentElement.scrollHeight,
+        behavior: 'smooth'   // ← animación suave
+    });
 });
 
 /* ============================================================================

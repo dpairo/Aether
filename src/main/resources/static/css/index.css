@@ -34,7 +34,7 @@ html, body {
 }
 
 .search-box{
-   padding: 20px;
+    padding: 20px;
     display: flex;
     align-items: center;
     gap: 22px;
@@ -202,6 +202,15 @@ h1{
     margin: 0;
 }
 
+.sidebar-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 350px;
+    min-width: 350px;
+    max-width: 350px;
+}
+
 
 .status{
     position: fixed;
@@ -322,6 +331,117 @@ button[type="submit"]:hover {
 
 .hide{display:none;}
 
+/* Best Time Widget */
+.best-time-widget {
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    background: rgba(255,255,255,.95);
+    border: 2px solid rgba(0,0,0,.12);
+    border-radius: 12px;
+    padding: 20px;
+    height: fit-content;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+
+.best-time-widget h3 {
+    margin: 0 0 15px 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #222;
+    border-bottom: 2px solid #e0e0e0;
+    padding-bottom: 10px;
+}
+
+.best-time-content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.loading-message {
+    color: #666;
+    font-size: 14px;
+    text-align: center;
+    padding: 20px 0;
+    margin: 0;
+}
+
+.time-slots {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.time-slot {
+    background: rgba(255, 255, 255, 0.5);
+    border: 2px solid rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    padding: 12px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.time-slot:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.time-slot-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.time-range {
+    font-weight: 600;
+    font-size: 16px;
+    color: #222;
+}
+
+.time-slot-aqi {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.aqi-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    color: white;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.time-slot-recommendation {
+    font-size: 13px;
+    color: #555;
+    line-height: 1.4;
+    margin: 0;
+}
+
+.time-slot-rank {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.time-slot {
+    position: relative;
+}
+
 /* Leyenda AQI minimal */
 .aqi-legend{
     --aqi-good:#00E400; --aqi-moderate:#FFFF00; --aqi-sensitive:#FF7E00;
@@ -332,9 +452,6 @@ button[type="submit"]:hover {
     border: 2px solid rgba(0,0,0,.12);
     border-radius: 12px;
     padding: 20px;
-    width: 350px;
-    min-width: 350px;
-    max-width: 350px;
     height: fit-content;
     backdrop-filter: blur(8px);
     box-shadow: 0 4px 20px rgba(0,0,0,0.15);
@@ -372,4 +489,11 @@ button[type="submit"]:hover {
     .aqi-legend{ background:rgba(22,22,22,.9); border-color:rgba(255,255,255,.08); }
     .aqi-meaning{ color:#f2f2f2; }
     .aqi-swatch{ border-color:rgba(255,255,255,.45); box-shadow:0 0 0 1px rgba(0,0,0,.4) inset; }
+
+    .best-time-widget{ background:rgba(22,22,22,.9); border-color:rgba(255,255,255,.08); }
+    .best-time-widget h3 { color: #f2f2f2; border-bottom-color: rgba(255,255,255,.15); }
+    .time-slot { background: rgba(255,255,255,.05); border-color:rgba(255,255,255,.1); }
+    .time-range { color: #f2f2f2; }
+    .time-slot-recommendation { color: #ccc; }
+    .loading-message { color: #999; }
 }
