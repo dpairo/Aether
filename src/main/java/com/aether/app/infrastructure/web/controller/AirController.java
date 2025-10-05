@@ -3,6 +3,7 @@ package com.aether.app.infrastructure.web.controller;
 import com.aether.app.air.AirQualityService;
 import com.aether.app.air.NominatimService;
 import com.aether.app.air.OpenAQService;
+import com.aether.app.infrastructure.web.dto.BestTimeResponseDTO;
 import com.aether.app.infrastructure.web.dto.CityAirQualityDTO;
 import com.aether.app.infrastructure.web.dto.CitySearchDTO;
 import com.aether.app.infrastructure.web.dto.PollutionHotspotsResponseDTO;
@@ -58,5 +59,15 @@ public class AirController {
     @GetMapping("/air/search/city")
     public CitySearchDTO searchCity(@RequestParam String cityName) {
         return nominatimService.searchSpanishCity(cityName);
+    }
+    
+    /**
+     * Get best time slots to go out based on predicted air quality
+     * @param cityId The city identifier (e.g., "madrid", "barcelona", "valencia")
+     * @return List of best time slots with predicted AQI and recommendations
+     */
+    @GetMapping("/air/quality/best-time/{cityId}")
+    public BestTimeResponseDTO getBestTimeToGoOut(@PathVariable String cityId) {
+        return airQualityService.getBestTimeToGoOut(cityId);
     }
 }

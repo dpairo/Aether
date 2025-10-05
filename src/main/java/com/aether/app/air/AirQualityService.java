@@ -1,5 +1,7 @@
 package com.aether.app.air;
 
+import com.aether.app.infrastructure.web.dto.BestTimeResponseDTO;
+import com.aether.app.infrastructure.web.dto.BestTimeSlotDTO;
 import com.aether.app.infrastructure.web.dto.CityAirQualityDTO;
 import com.aether.app.infrastructure.web.dto.WAQIResponseDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -156,4 +158,74 @@ public class AirQualityService {
     }
 
     private record CityConfig(String name, String cityId, Double latitude, Double longitude) {}
+    
+    /**
+     * Get best time slots to go out based on predicted AQI
+     */
+    public BestTimeResponseDTO getBestTimeToGoOut(String cityId) {
+        CityConfig cityConfig = getCityConfig(cityId);
+        int baseAqi = getSimulatedAQI(cityId);
+        
+        List<BestTimeSlotDTO> timeSlots = new ArrayList<>();
+        
+        // Generate time slots with predicted AQI (simulated)
+        // Early morning (6-8 AM) - usually best air quality
+        timeSlots.add(createTimeSlot("06:00 - 08:00", baseAqi - 15));
+        
+        // Morning (8-10 AM) - air quality starts to decline
+        timeSlots.add(createTimeSlot("08:00 - 10:00", baseAqi - 10));
+        
+        // Late morning (10-12 AM)
+        timeSlots.add(createTimeSlot("10:00 - 12:00", baseAqi - 5));
+        
+        // Noon (12-14 PM) - moderate
+        timeSlots.add(createTimeSlot("12:00 - 14:00", baseAqi));
+        
+        // Afternoon (14-16 PM) - usually worse
+        timeSlots.add(createTimeSlot("14:00 - 16:00", baseAqi + 10));
+        
+        // Late afternoon (16-18 PM) - peak traffic
+        timeSlots.add(createTimeSlot("16:00 - 18:00", baseAqi + 15));
+        
+        // Evening (18-20 PM) - traffic decreases
+        timeSlots.add(createTimeSlot("18:00 - 20:00", baseAqi + 10));
+        
+        // Night (20-22 PM) - air quality improves
+        timeSlots.add(createTimeSlot("20:00 - 22:00", baseAqi - 5));
+        
+        // Sort by AQI (best first)
+        timeSlots.sort(Comparator.comparingInt(BestTimeSlotDTO::predictedAQI));
+        
+        // Return only top 5
+        List<BestTimeSlotDTO> topSlots = timeSlots.stream()
+                .limit(5)
+                .toList();
+        
+        return new BestTimeResponseDTO(cityConfig.name(), cityId, topSlots);
+    }
+    
+    private BestTimeSlotDTO createTimeSlot(String timeRange, int aqi) {
+        // Ensure AQI is within valid range
+        int validAqi = Math.max(0, Math.min(500, aqi));
+        String color = com.aether.app.infrastructure.web.dto.AQIColorUtil.getAQIColor(validAqi);
+        String recommendation = getRecommendationForAQI(validAqi);
+        
+        return new BestTimeSlotDTO(timeRange, validAqi, color, recommendation);
+    }
+    
+    private String getRecommendationForAQI(int aqi) {
+        if (aqi <= 50) {
+            return "Excelente momento para salir. Aire limpio y saludable.";
+        } else if (aqi <= 100) {
+            return "Buen momento para actividades al aire libre. Calidad aceptable.";
+        } else if (aqi <= 150) {
+            return "Aceptable para la mayoría. Personas sensibles deben considerar limitar actividades prolongadas.";
+        } else if (aqi <= 200) {
+            return "Personas sensibles deben evitar actividades intensas. Público general debe limitar esfuerzos prolongados.";
+        } else if (aqi <= 300) {
+            return "No recomendado para actividades al aire libre. Considere ejercitarse en interiores.";
+        } else {
+            return "Evite actividades al aire libre. Aire peligroso para la salud.";
+        }
+    }
 }
