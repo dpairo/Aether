@@ -56,13 +56,41 @@ html, body {
     height: 44px;                    /* 48px si lo quieres más grande */
     min-width: 280px;                /* ajusta a tu layout */
     border-radius: 2px;
-    padding: 0 44px 0 16px;          /* deja espacio para la lupa a la derecha */
+    padding: 0 16px;          /* padding horizontal uniforme */
     border: 2px solid rgba(255,255,255,.22);
     background: rgba(255,255,255,.08);
     color: #fff;
     outline: none;
     transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
     -webkit-appearance: none;
+}
+
+.search-box #search:focus {
+    border-color: #0078ff;
+    background: rgba(255,255,255,.15);
+}
+
+.search-box #search-btn {
+    height: 44px;
+    width: 44px;
+    min-width: 44px;
+    border-radius: 2px;
+    padding: 0;
+    border: 2px solid rgba(255,255,255,.22);
+    background: rgba(255,255,255,.08);
+    color: #fff;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.search-box #search-btn:hover {
+    background: rgba(255,255,255,.15);
+    border-color: rgba(255,255,255,.4);
+    transform: scale(1.05);
 }
 
 .actions{

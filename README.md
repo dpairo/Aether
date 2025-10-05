@@ -9,11 +9,13 @@ Plataforma web que visualiza datos de calidad del aire en tiempo real, diseñada
 ## ✨ Características
 
 - 🗺️ Visualización de calidad del aire en tiempo real sobre mapa interactivo
+- 🔍 **Búsqueda de ciudades españolas** con coordenadas automáticas
 - 🏃 Integración con Strava para rutas personalizadas
 - 📍 Geolocalización para datos del aire en tu ubicación
 - 🌈 Código de colores AQI (Air Quality Index) estándar EPA
 - 🔄 Rutas más repetidas con contador de frecuencia
 - 📊 Información detallada de ciudades españolas
+- 🔴 Puntos nocivos generados automáticamente dentro de cada ciudad
 
 ---
 
@@ -66,6 +68,7 @@ Ver [docs/STRAVA_SETUP.md](docs/STRAVA_SETUP.md) para guía completa.
 |-----------|-------------|
 | [**Guía de Inicio Rápido**](docs/QUICK_START.md) | Setup en 5 minutos |
 | [**API Reference**](docs/API.md) | Endpoints y ejemplos |
+| [**Búsqueda de Ciudades**](docs/CITY_SEARCH.md) | Feature de búsqueda con Nominatim |
 | [**Rutas Repetidas**](docs/RUTAS_REPETIDAS.md) | Feature de Strava |
 | [**Setup de Strava**](docs/STRAVA_SETUP.md) | Configuración OAuth |
 | [**Tests**](docs/TESTS.md) | Guía de testing |
@@ -82,14 +85,24 @@ Ver [docs/STRAVA_SETUP.md](docs/STRAVA_SETUP.md) para guía completa.
 - Datos en tiempo real de ciudades españolas
 - Hotspots de contaminación
 
-### 2. Integración con Strava
+### 2. 🔍 Búsqueda de Ciudades (NUEVO)
+
+- Búsqueda de ciudades españolas por nombre
+- Integración con API de Nominatim (OpenStreetMap)
+- Visualización automática del polígono de la ciudad
+- Color del polígono basado en el AQI de la ciudad
+- Generación de 3 puntos nocivos aleatorios dentro de la ciudad
+- Ajuste automático del mapa al perímetro de la ciudad
+- Búsqueda por Enter o botón de búsqueda
+
+### 3. Integración con Strava
 
 - OAuth 2.0 seguro
 - Detección de rutas más repetidas
 - Visualización en formato GeoJSON
 - Contador de frecuencia por ruta
 
-### 3. Geolocalización
+### 4. Geolocalización
 
 - Permiso del usuario
 - Reverse geocoding con Nominatim

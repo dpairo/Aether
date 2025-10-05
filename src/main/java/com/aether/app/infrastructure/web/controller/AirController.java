@@ -1,8 +1,10 @@
 package com.aether.app.infrastructure.web.controller;
 
 import com.aether.app.air.AirQualityService;
+import com.aether.app.air.NominatimService;
 import com.aether.app.air.OpenAQService;
 import com.aether.app.infrastructure.web.dto.CityAirQualityDTO;
+import com.aether.app.infrastructure.web.dto.CitySearchDTO;
 import com.aether.app.infrastructure.web.dto.PollutionHotspotsResponseDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +18,9 @@ public class AirController {
     
     @Autowired
     private OpenAQService openAQService;
+    
+    @Autowired
+    private NominatimService nominatimService;
 
     /**
      * Get air quality data for a specific Spanish city
@@ -43,5 +48,15 @@ public class AirController {
             @RequestParam(required = false) Integer limit
     ) {
         return openAQService.getPollutionHotspots(lat, lon, radius, limit);
+    }
+    
+    /**
+     * Search for a Spanish city by name and get its coordinates
+     * @param cityName Name of the Spanish city to search for
+     * @return City information including lat/lon coordinates and bounding box
+     */
+    @GetMapping("/air/search/city")
+    public CitySearchDTO searchCity(@RequestParam String cityName) {
+        return nominatimService.searchSpanishCity(cityName);
     }
 }

@@ -258,6 +258,8 @@ public class StravaController {
             List<StravaActivityService.RouteGroup> routeGroups = 
                     stravaActivityService.getMostRepeatedRoutes(athleteId, city, limit);
             
+            log.info("Found {} route groups for city '{}'", routeGroups.size(), city);
+            
             if (routeGroups.isEmpty()) {
                 log.info("No routes found in city '{}' for athlete {}", city, athleteId);
                 
@@ -289,6 +291,7 @@ public class StravaController {
                 }
                 
                 List<List<Double>> coordinates = PolylineUtil.decode(polyline);
+                log.info("Decoded {} coordinates for activity {}", coordinates.size(), representative.id());
                 
                 if (coordinates.isEmpty()) {
                     log.warn("Failed to decode polyline for activity {}", representative.id());
@@ -325,8 +328,10 @@ public class StravaController {
             // Create GeoJSON response
             RouteGeoJsonDTO geoJson = RouteGeoJsonDTO.create(features, metadata);
             
-            log.info("Returning {} routes as GeoJSON for athlete {} in city '{}'", 
-                    features.size(), athleteId, city);
+            log.info("Returning {} routes as GeoJSON for athlete {} in city '{}' (total {} route groups processed)", 
+                    features.size(), athleteId, city, routeGroups.size());
+            log.info("GeoJSON structure: type={}, features count={}, metadata={}", 
+                    geoJson.type(), geoJson.features().size(), geoJson.metadata());
             
             return ResponseEntity.ok(geoJson);
             

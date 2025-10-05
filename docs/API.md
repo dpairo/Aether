@@ -76,6 +76,47 @@ Obtiene puntos más contaminados cerca de una ubicación.
 curl "http://localhost:8080/api/v1/air/quality/hotspots?lat=40.4168&lon=-3.7038&radius=500&limit=3"
 ```
 
+### GET /air/search/city
+
+Busca una ciudad española por nombre y obtiene sus coordenadas usando la API de Nominatim.
+
+**Parámetros:**
+- `cityName` (query, requerido): Nombre de la ciudad española a buscar
+
+**Respuesta exitosa (200):**
+```json
+{
+  "city": "Madrid",
+  "latitude": "40.4168",
+  "longitude": "-3.7038",
+  "displayName": "Madrid, Comunidad de Madrid, España",
+  "boundingBox": ["40.31", "40.64", "-3.89", "-3.52"]
+}
+```
+
+**Respuesta de error (404):**
+```json
+{
+  "error": "City not found"
+}
+```
+
+**Ejemplo:**
+```bash
+curl "http://localhost:8080/api/v1/air/search/city?cityName=Madrid"
+```
+
+**Casos de uso:**
+- Búsqueda de ciudades para visualización en el mapa
+- Obtención de coordenadas para otras operaciones
+- Obtención de bounding box para delimitar áreas
+
+**Notas:**
+- La búsqueda está limitada a ciudades españolas
+- Usa la API de Nominatim de OpenStreetMap
+- Los resultados incluyen el bounding box de la ciudad para delimitar áreas
+- Respeta los límites de tasa de Nominatim (1 petición/segundo)
+
 ---
 
 ## 🏃 Strava Endpoints

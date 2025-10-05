@@ -105,7 +105,10 @@ async function getCity(lat, lon) {
     if (!res.ok) throw new Error('Reverse geocoding error');
 
     const a = (await res.json()).address || {};
-    return a.city || a.town || a.village || a.municipality || null;
+    const cityName = a.city || a.town || a.village || a.municipality || null;
+    
+    // Clean city name by removing trailing numbers
+    return cityName ? cityName.replace(/\d+$/, '').trim() : null;
 }
 
 /* ============================================================================
@@ -449,11 +452,15 @@ async function fetchRepeatedRoutes(athleteId, city) {
         
         if (!response.ok) {
             console.warn(`⚠️ Error al obtener rutas: ${response.status}`);
+            const errorText = await response.text();
+            console.error('❌ Error response:', errorText);
             return null;
         }
         
         const geoJson = await response.json();
-        console.log('✅ Rutas obtenidas:', geoJson);
+        console.log('✅ Rutas obtenidas (raw):', geoJson);
+        console.log('✅ Número de features:', geoJson?.features?.length || 0);
+        console.log('✅ Metadata:', geoJson?.metadata);
         return geoJson;
         
     } catch (error) {
@@ -474,8 +481,16 @@ function clearRouteLayers() {
  * Draw routes on map from GeoJSON
  */
 function drawRoutesOnMap(geoJson) {
+    console.log('📦 GeoJSON recibido:', geoJson);
+    console.log('📦 Type:', typeof geoJson);
+    console.log('📦 Features:', geoJson?.features);
+    console.log('📦 Features length:', geoJson?.features?.length);
+    
     if (!geoJson || !geoJson.features || geoJson.features.length === 0) {
         console.log('ℹ️ No hay rutas para dibujar');
+        if (geoJson && geoJson.metadata) {
+            console.log('📊 Metadata:', geoJson.metadata);
+        }
         return;
     }
     
@@ -558,6 +573,115 @@ async function fetchAndDrawRoutesIfAvailable(city) {
         drawRoutesOnMap(geoJson);
     }
 }
+
+/* ============================================================================
+ *  SEARCH CITY BY NAME
+ * ========================================================================== */
+const searchInput = document.getElementById('search');
+const searchBtn = document.getElementById('search-btn');
+
+async function searchAndDisplayCity(cityName) {
+    if (!cityName || cityName.trim() === '') {
+        console.log('❌ Nombre de ciudad vacío');
+        return;
+    }
+
+    try {
+        console.log(`🔍 Buscando ciudad: ${cityName}`);
+        
+        // 1. Buscar la ciudad en Nominatim
+        const searchUrl = `${API_BASE}/air/search/city?cityName=${encodeURIComponent(cityName)}`;
+        const searchResponse = await fetch(searchUrl);
+        
+        if (!searchResponse.ok) {
+            alert(`No se encontró la ciudad: ${cityName}`);
+            return;
+        }
+        
+        const cityData = await searchResponse.json();
+        console.log('✅ Ciudad encontrada:', cityData);
+        
+        const lat = parseFloat(cityData.latitude);
+        const lon = parseFloat(cityData.longitude);
+        // Clean city name by removing trailing numbers
+        const cityNameFound = cityData.city ? cityData.city.replace(/\d+$/, '').trim() : cityData.city;
+        
+        // Save city data for later use
+        currentCity = cityNameFound;
+        sessionStorage.setItem('currentCity', cityNameFound);
+        sessionStorage.setItem('userLat', lat.toString());
+        sessionStorage.setItem('userLon', lon.toString());
+        
+        // 2. Obtener AQI y color de la ciudad
+        let cityAqiColor = '#3b82f6'; // Default color
+        try {
+            const aqiData = await getCityAirQuality(cityNameFound);
+            if (aqiData) {
+                cityAqiColor = aqiData.aqiColor;
+                sessionStorage.setItem('cityAqiColor', cityAqiColor);
+                console.log(`🎨 AQI: ${aqiData.aqi}, Color: ${cityAqiColor}, Estado: ${aqiData.aqiStatus}`);
+            }
+        } catch (e) {
+            console.warn('No se pudo obtener AQI de la ciudad, usando color por defecto');
+        }
+        
+        // 3. Obtener polígono de la ciudad desde Nominatim
+        let fc = null;
+        try {
+            fc = await fetchCityPolygon(lat, lon);
+            if (fc) {
+                await updateCityLayout(fc, cityAqiColor);
+            } else {
+                // Si no hay polígono, solo hacer zoom
+                map.setView([lat, lon], 12);
+            }
+        } catch (e) {
+            console.warn('No se pudo obtener el polígono de la ciudad');
+            map.setView([lat, lon], 12);
+        }
+        
+        // 4. Generar y dibujar puntos contaminados dentro del polígono
+        try {
+            if (fc) {
+                await ensureTurf();
+                const hotspots = generateHotspotsInCity(fc, 3);
+                if (hotspots && hotspots.length > 0) {
+                    drawHotspotMarkers(hotspots);
+                    console.log(`✅ Generados ${hotspots.length} puntos contaminados en ${cityNameFound}`);
+                }
+            }
+        } catch (e) {
+            console.error('⚠️ Error al generar puntos contaminados:', e);
+        }
+        
+        // 5. Obtener y dibujar rutas más repetidas de Strava (si el usuario está autenticado)
+        try {
+            await fetchAndDrawRoutesIfAvailable(cityNameFound);
+        } catch (e) {
+            console.error('⚠️ Error al obtener rutas de Strava:', e);
+        }
+        
+        console.log(`✅ Ciudad ${cityNameFound} mostrada exitosamente`);
+        
+    } catch (error) {
+        console.error('❌ Error buscando ciudad:', error);
+        alert(`Error al buscar la ciudad: ${error.message}`);
+    }
+}
+
+// Event listener for search input (Enter key)
+searchInput?.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        const cityName = searchInput.value.trim();
+        searchAndDisplayCity(cityName);
+    }
+});
+
+// Event listener for search button (click)
+searchBtn?.addEventListener('click', () => {
+    const cityName = searchInput.value.trim();
+    searchAndDisplayCity(cityName);
+});
 
 /* ============================================================================
  *  EVENTOS UI
